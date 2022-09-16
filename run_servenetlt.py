@@ -31,7 +31,7 @@ if __name__ == "__main__":
     test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
     model = ServeNet(768, CLASS_NUM)
-    model.bert_description.requires_grad_(False)
+    # model.bert_description.requires_grad_(False)
     model = torch.nn.DataParallel(model)
     model = model.cuda()
     model.train()
