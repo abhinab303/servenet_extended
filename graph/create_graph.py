@@ -10,6 +10,8 @@ import re
 import pickle
 import networkx as nx
 
+from tqdm import tqdm
+
 lemmatizer = WordNetLemmatizer()
 english_stopwords = stopwords.words('english')
 english_stopwords = set(english_stopwords)
@@ -99,16 +101,19 @@ def construct_mashup_api_edges(graph, cleaned_api_dataframe, cleaned_mashup_data
         api_called_data = row[2]
 
         # # For all the api invoked by mashup, create edge between mashup and that particular api
+        # for api_data in tqdm(api_called_data, position=0, leave=True):
         for api_data in api_called_data:
             api_data = str(api_data)
             api_name = api_data.strip().lower()
             if api_name in api_to_node:
-                print(".", end="")
+                # print(".", end="")
                 count = count + 2
                 api_index_id = api_to_node[api_name]
                 weight_value = 1 - (1 / len(api_called_data))
                 graph.add_edge(checkpointIndex + index, api_index_id, weight=weight_value)
                 graph.add_edge(api_index_id, checkpointIndex + index, weight=weight_value)
+
+    print("total mashup-api edges: ", count)
 
 
 def construct_api_word_edges(graph, cleaned_api_dataframe, unique_words_in_corpus, tfidf_dataframe):
@@ -125,6 +130,7 @@ def construct_api_word_edges(graph, cleaned_api_dataframe, unique_words_in_corpu
         # create a set of unique words from the description
         words = set(description.strip().split(" "))
 
+        # for word in tqdm(words, position=0, leave=True):
         for word in words:
             if word == "":
                 continue
@@ -154,10 +160,12 @@ def construct_api_word_edges(graph, cleaned_api_dataframe, unique_words_in_corpu
                     graph.add_edge(index, word_node_index, weight=tfidf_dataframe.loc[index, word])
                     graph.add_edge(word_node_index, index, weight=tfidf_dataframe.loc[index, word])
                     count = count + 2
-                    print("a", end="")
+                    # print("a", end="")
                 except Exception as e:
                     count = count + 1
                     graph.add_edge(index, word_node_index, weight=0.25)
+
+    print("total api-word edges: ", count)
 
 
 def construct_mashup_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dataframe, unique_words_in_corpus,
@@ -169,6 +177,7 @@ def construct_mashup_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dat
         description = row[1]
         description = re.sub(r'[^A-Za-z0-9 ]+', '', description)
         words = set(description.strip().split(" "))
+        # for word in tqdm(words, position=0, leave=True):
         for word in words:
             if word == "":
                 continue
@@ -192,10 +201,12 @@ def construct_mashup_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dat
                     graph.add_edge(word_node_index, checkpointIndex + index,
                                    weight=tfidf_dataframe.loc[checkpointIndex + index, word])
                     count = count + 2
-                    print("m", end="")
+                    # print("m", end="")
                 except Exception as e:
                     count = count + 1
                     graph.add_edge(checkpointIndex + index, word_node_index, weight=0.25)
+
+    print("total mashup-word edges: ", count)
 
 
 def construct_word_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dataframe, unique_words_in_corpus,
@@ -205,6 +216,7 @@ def construct_word_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dataf
     word_list = list(unique_words_in_corpus.keys())
 
     # # Iterate over each word in the unique words dictionary
+    # for word in tqdm(word_list, position=0, leave=True):
     for word in word_list:
         if word == "":
             continue
@@ -237,7 +249,7 @@ def construct_word_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dataf
                         word_2_index = word_to_node[lemmatized_word]
                         similarity_score = similar_word[1]
                         if similarity_score > 0.5:
-                            print("w", end="")
+                            # print("w", end="")
                             count = count + 1
                             graph.add_edge(word_1_index, word_2_index, weight=similarity_score)
                             is_present = True
@@ -249,6 +261,8 @@ def construct_word_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dataf
                 continue
             if is_present:
                 break
+
+    print("total word-word edges: ", count)
 
 
 node_to_api = {}
@@ -285,7 +299,7 @@ if __name__ == "__main__":
     print("construct_mashup_api_edges")
     construct_mashup_api_edges(graph, api_dataframe, mashup_dataframe, unique_words_in_corpus)
     print("construct_api_word_edges")
-    # construct_api_word_edges(graph, api_dataframe, unique_words_in_corpus, tfidf_dataframe)
+    construct_api_word_edges(graph, api_dataframe, unique_words_in_corpus, tfidf_dataframe)
     print("construct_mashup_word_edges")
     construct_mashup_word_edges(graph, api_dataframe, mashup_dataframe, unique_words_in_corpus, tfidf_dataframe)
     print("construct_word_word_edges")
