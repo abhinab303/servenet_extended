@@ -97,7 +97,7 @@ def construct_mashup_api_edges(graph, cleaned_api_dataframe, cleaned_mashup_data
     count = 0
     checkpointIndex = len(cleaned_api_dataframe)
     for index, row in cleaned_mashup_dataframe.iterrows():
-        graph.add_edge(checkpointIndex + index, checkpointIndex + index)
+        # graph.add_edge(checkpointIndex + index, checkpointIndex + index)
         api_called_data = row[2]
 
         # # For all the api invoked by mashup, create edge between mashup and that particular api
@@ -119,7 +119,7 @@ def construct_mashup_api_edges(graph, cleaned_api_dataframe, cleaned_mashup_data
 def construct_api_word_edges(graph, cleaned_api_dataframe, unique_words_in_corpus, tfidf_dataframe):
     count = 0
     for index, row in cleaned_api_dataframe.iterrows():
-        graph.add_edge(index, index)
+        # graph.add_edge(index, index)
 
         # obtain the api description
         description = row[1]
@@ -173,7 +173,7 @@ def construct_mashup_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dat
     count = 0
     checkpointIndex = len(cleaned_api_dataframe)
     for index, row in cleaned_mashup_dataframe.iterrows():
-        graph.add_edge(checkpointIndex + index, checkpointIndex + index)
+        # graph.add_edge(checkpointIndex + index, checkpointIndex + index)
         description = row[1]
         description = re.sub(r'[^A-Za-z0-9 ]+', '', description)
         words = set(description.strip().split(" "))
@@ -220,7 +220,7 @@ def construct_word_word_edges(graph, cleaned_api_dataframe, cleaned_mashup_dataf
     for word in word_list:
         if word == "":
             continue
-        graph.add_edge(checkpointIndex, checkpointIndex)
+        # graph.add_edge(checkpointIndex, checkpointIndex)
 
         # # For all possible word combination for a given root word
         for non_lemma_word in lemmatized_dictionary[word]:
