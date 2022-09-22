@@ -92,12 +92,12 @@ def perform_lemmatization(sentence):
     lemmatized_sentence = " ".join(lemmatized_sentence)
     return lemmatized_sentence
 
-# with open(output_folder_path + "/word2vec_model.pickle", "rb") as f:
-#   word2vec = pickle.load(f)
+with open(output_folder_path + "/word2vec_model.pickle", "rb") as f:
+    word2vec = pickle.load(f)
 
-word2vec = models.KeyedVectors.load_word2vec_format(
-    "/home/aa7514/PycharmProjects/servenet_extended/files/GoogleNews-vectors-negative300.bin.gz",
-    binary=True)
+# word2vec = models.KeyedVectors.load_word2vec_format(
+#     "/home/aa7514/PycharmProjects/servenet_extended/files/GoogleNews-vectors-negative300.bin.gz",
+#     binary=True)
 
 api_descriptions = api_dataframe["ServiceDescription"]
 mashup_descriptions = mashup_dataframe["MashupDescription"]
@@ -110,8 +110,8 @@ for word in unique_words_in_corpus.keys():
     is_present = False
     for non_lemma_word in lemmatized_dictionary[word]:
         try:
-            # vector = word2vec.wv[non_lemma_word]
-            vector = word2vec[non_lemma_word]
+            vector = word2vec.wv[non_lemma_word]
+            # vector = word2vec[non_lemma_word]
             word_feature_vectors.append(vector)
             is_present = True
             break

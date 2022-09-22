@@ -98,7 +98,7 @@ def load_data_train_names(catagory_num, max_len=100):
     for key, value in name_tokens.items():
         name_list.append(torch.tensor(value))
 
-    train_data = TensorDataset(*desc_list, total_targets, *name_list)
+    train_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values))
 
     return train_data
 
@@ -136,7 +136,7 @@ def load_data_test_names(catagory_num, max_len_desc=100, max_len_name=10,):
     for key, value in name_tokens.items():
         name_list.append(torch.tensor(value))
 
-    test_data = TensorDataset(*desc_list, total_targets, *name_list)
+    test_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values))
 
     return test_data
 
@@ -221,9 +221,10 @@ def evaluteTop1_names(model, dataLoader, class_num=50, per_class=False):
                      'token_type_ids': data[5].cuda(),
                      'attention_mask': data[6].cuda()
                      }
+            indices = data[7].cuda()
             label = data[3].cuda()
 
-            outputs = model(descriptions, names)
+            outputs = model(descriptions, names, indices)
 
             _, predicted = torch.max(outputs, 1)
             total += label.size(0)
@@ -263,9 +264,10 @@ def evaluteTop5_names(model, dataLoader):
                      'token_type_ids': data[5].cuda(),
                      'attention_mask': data[6].cuda()
                      }
+            indices = data[7].cuda()
             label = data[3].cuda()
 
-            outputs = model(descriptions, names)
+            outputs = model(descriptions, names, indices)
 
             maxk = max((1, 5))
             y_resize = label.view(-1, 1)

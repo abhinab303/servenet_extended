@@ -10,6 +10,9 @@ import re
 import pickle
 import networkx as nx
 
+import numpy as np
+import math
+
 from tqdm import tqdm
 
 lemmatizer = WordNetLemmatizer()
@@ -270,6 +273,18 @@ api_to_node = {}
 node_to_word = {}
 word_to_node = {}
 
+
+def sentence_random(api_dataframe, word_embeddings, mashup_dataframe):
+    np.random.seed(0)
+    scale = 1 / max(1., (2 + 2) / 2.)
+    limit = math.sqrt(3.0 * scale)
+    print("lens: ", len(api_dataframe), len(word_embeddings), len(mashup_dataframe))
+    dim1 = len(api_dataframe) + len(word_embeddings) + len(mashup_dataframe)
+    dim2 = 768
+    weights = np.random.uniform(-limit, limit, size=(dim1, dim2))
+    return weights
+
+
 if __name__ == "__main__":
     api_dataframe, mashup_dataframe, merged_descriptions = load_data()
 
@@ -311,5 +326,7 @@ if __name__ == "__main__":
     with open(file_path + "/graph.pickle", "wb") as f:
         pickle.dump(graph, f)
 
-    # with open(file_path + "/feature_matrix.pickle", "wb") as f:
-    #     pickle.dump(word_embeddings, f)
+    with open(file_path + "/feature_matrix.pickle", "wb") as f:
+        # pickle.dump(word_embeddings, f)
+        pickle.dump(sentence_random(word_embeddings, api_dataframe, mashup_dataframe), f)
+    sentence_random(word_embeddings, api_dataframe, mashup_dataframe)

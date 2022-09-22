@@ -12,6 +12,17 @@ class weighted_sum(nn.Module):
         return input1 * self.w1 + input2 * self.w2
 
 
+class weighted_sum3(nn.Module):
+    def __init__(self):
+        super(weighted_sum3, self).__init__()
+        self.w1 = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
+        self.w2 = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
+        self.w3 = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
+
+    def forward(self, input1, input2, input3):
+        return input1 * self.w1 + input2 * self.w2 + input3 * self.w3
+
+
 class MutliHead(nn.Module):
 
     def __init__(self,
