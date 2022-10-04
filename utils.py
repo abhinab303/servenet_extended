@@ -13,12 +13,22 @@ from torch.utils.data import TensorDataset
 ip_file_dir = "/home/aa7514/PycharmProjects/servenet_extended/data/"
 
 
+def encode_onehot(labels):
+    # classes = set(labels)
+    classes = classes = sorted(list(set(labels)), key=str.lower)
+    classes_dict = {c: np.identity(len(classes))[i, :] for i, c in
+                    enumerate(classes)}
+    labels_onehot = np.array(list(map(classes_dict.get, labels)),
+                             dtype=np.int32)
+    return labels_onehot
+
 def load_data_train(catagory_num):
     train_file = f"{ip_file_dir}{catagory_num}/train.csv"
     df = pd.read_csv(train_file)
     values = np.array(df.ServiceClassification)
     label_encoder = LabelEncoder()
-    integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded = label_encoder.fit_transform(values)
+    integer_encoded = encode_onehot(df.ServiceClassification)
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
     # descriptions
@@ -44,7 +54,8 @@ def load_data_test(catagory_num):
     df = pd.read_csv(test_file)
     values = np.array(df.ServiceClassification)
     label_encoder = LabelEncoder()
-    integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded = label_encoder.fit_transform(values)
+    integer_encoded = encode_onehot(df.ServiceClassification)
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
     # descriptions
@@ -70,7 +81,9 @@ def load_data_train_names(catagory_num, max_len=100):
     df = pd.read_csv(train_file)
     values = np.array(df.ServiceClassification)
     label_encoder = LabelEncoder()
-    integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded2 = label_encoder.fit_transform(values)
+    # integer_encoded = encode_onehot(df.ServiceClassification).transpose(1, 0)
+    integer_encoded = torch.LongTensor(np.where(encode_onehot(df.ServiceClassification))[1])
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
     # descriptions
@@ -105,10 +118,14 @@ def load_data_train_names(catagory_num, max_len=100):
 
 def load_data_test_names(catagory_num, max_len_desc=100, max_len_name=10,):
     test_file = f"{ip_file_dir}{catagory_num}/test.csv"
+    train_file = f"{ip_file_dir}{catagory_num}/train.csv"
+    train_df = pd.read_csv(train_file)
     df = pd.read_csv(test_file)
     values = np.array(df.ServiceClassification)
     label_encoder = LabelEncoder()
-    integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded = encode_onehot(df.ServiceClassification).transpose(1, 0)
+    integer_encoded = integer_encoded = torch.LongTensor(np.where(encode_onehot(df.ServiceClassification))[1])
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
     # descriptions
@@ -136,7 +153,7 @@ def load_data_test_names(catagory_num, max_len_desc=100, max_len_name=10,):
     for key, value in name_tokens.items():
         name_list.append(torch.tensor(value))
 
-    test_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values))
+    test_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values + len(train_df)))
 
     return test_data
 
@@ -205,7 +222,7 @@ def evaluteTop5(model, dataLoader):
 
 
 def evaluteTop1_names(model, dataLoader, class_num=50, per_class=False):
-    model.eval()
+    # model.eval()
     correct = 0
     total = 0
     class_correct = list(0. for i in range(class_num))
@@ -250,7 +267,7 @@ def evaluteTop1_names(model, dataLoader, class_num=50, per_class=False):
 
 
 def evaluteTop5_names(model, dataLoader):
-    model.eval()
+    # model.eval()
     correct = 0
     total = 0
     with torch.no_grad():

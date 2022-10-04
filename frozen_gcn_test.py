@@ -18,6 +18,12 @@ import torch.nn.functional as F
 import dgl
 from dgl.nn import GraphConv
 
+import random
+
+torch.manual_seed(0)
+random.seed(0)
+np.random.seed(0)
+
 from transformers import BertModel
 from model.multi_head import weighted_sum3, MutliHead
 
@@ -76,7 +82,8 @@ def normalize(mx):
 
 
 def encode_onehot(labels):
-    classes = set(labels)
+    # classes = set(labels)
+    classes = classes = sorted(list(set(labels)), key=str.lower)
     classes_dict = {c: np.identity(len(classes))[i, :] for i, c in
                     enumerate(classes)}
     labels_onehot = np.array(list(map(classes_dict.get, labels)),
@@ -130,10 +137,11 @@ class GCN(nn.Module):
         x = F.dropout(x, self.dropout, training=self.training)
         x = F.relu(self.gc2(g, x))
         x = F.dropout(x, self.dropout, training=self.training)
-        # output = self.final_liner(x)
+        output = self.final_liner(x)
         # return F.log_softmax(x, dim=1)
-        return x
-        # return F.log_softmax(output, dim=1)
+        # return x
+        return F.log_softmax(output, dim=1)
+        # return output
 
 
 with open(graph_path, "rb") as f:
@@ -169,184 +177,58 @@ idx_val = torch.LongTensor(idx_val)
 idx_test = torch.LongTensor(idx_test)
 
 g = dgl.from_networkx(graph_copy).to('cuda')
+# g = dgl.from_networkx(graph).to('cuda')
 g = dgl.add_self_loop(g)
 
 cuda = torch.cuda.is_available()
-fastmode = False
-seed = 42
-epochs = 40  # 2000
-lr = 0.01
-# weight_decay = 5e-4
-weight_decay = 0
-hidden = [1024, 1024]  # [2048, 1024]    # [256, 128]
-dropout = 0.5  # 0.95   # 0.4
-T_0 = 10  # Number of iterations for the first restart.
-patience = 50
-
-np.random.seed(seed)
-torch.manual_seed(seed)
-if cuda:
-    torch.cuda.manual_seed(seed)
-
-# Load data
-# adj, features, labels, idx_train, idx_val, idx_test = load_data()
-
-# Model and optimizer
-gcn_model = GCN(nfeat=features.shape[1],
-                nhid1=hidden[0],
-                nhid2=hidden[1],
-                nclass=labels.max().item() + 1,
-                dropout=dropout)
-
-# criterion = torch.nn.CrossEntropyLoss()
-# optimizer = optim.Adam(gcn_model.parameters(),
-#                        lr=lr,
-#                        #  weight_decay=weight_decay
-#                        )
-# scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0)
+# fastmode = False
+# hidden = [1024, 1024]
+# dropout = 0.5
+#
+# gcn_model = GCN(nfeat=features.shape[1],
+#                 nhid1=hidden[0],
+#                 nhid2=hidden[1],
+#                 nclass=labels.max().item() + 1,
+#                 dropout=dropout)
 
 if cuda:
-    gcn_model.cuda()
+    # gcn_model.cuda()
     features = features.cuda()
     labels = labels.cuda()
     idx_train = idx_train.cuda()
     idx_val = idx_val.cuda()
     idx_test = idx_test.cuda()
 
-# gcn_model.load_state_dict(torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4"))
+# gcn_model.load_state_dict(torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_model_not_random"))
+# # for param in gcn_model.parameters():
+# #     param.requires_grad = False
+# gcn_model.eval()
+# gcn_op = gcn_model(g, features)
+# print(gcn_op.shape)
+
 gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
-for param in gcn_model.parameters():
-    param.requires_grad = False
 gcn_model.eval()
 gcn_op = gcn_model(g, features)
 print(gcn_op.shape)
 
+train_data = load_data_train_names(50)
+test_data = load_data_test_names(50)
 
-class ServeNet(torch.nn.Module):
-    def __init__(self, hiddenSize, CLASS_NUM):
-        super(ServeNet, self).__init__()
-        self.hiddenSize = hiddenSize
+train_dataloader = DataLoader(train_data, batch_size=64)
+test_dataloader = DataLoader(test_data, batch_size=64)
+#
+#
+def model(names, descriptions, indices):
+    return gcn_op[indices]
+#
+#
+#
+#
+print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, train_dataloader, 50))))
+print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, train_dataloader))))
 
-        self.bert_name = BertModel.from_pretrained('bert-base-uncased')
-        self.bert_description = BertModel.from_pretrained('bert-base-uncased')
-
-        self.name_liner = nn.Linear(in_features=self.hiddenSize, out_features=1024)
-        self.name_ReLU = nn.ReLU()
-        self.name_Dropout = nn.Dropout(p=0.1)
-
-        self.lstm = nn.LSTM(input_size=self.hiddenSize, hidden_size=512, num_layers=1, batch_first=True,
-                            bidirectional=True)
-
-        self.weight_sum = weighted_sum3()
-        self.mutliHead = MutliHead(num_classes=CLASS_NUM)
-        # self.gcn = GCN(nfeat=features.shape[1],
-        #                nhid1=hidden[0],
-        #                nhid2=hidden[1],
-        #                nclass=labels.max().item() + 1,
-        #                dropout=dropout)
-
-    def forward(self, names, descriptions, indices):
-        self.lstm.flatten_parameters()
-
-        # name
-        name_bert_output = self.bert_name(**names)
-        # Feature for Name
-        name_features = self.name_liner(name_bert_output[1])
-        name_features = self.name_ReLU(name_features)
-        name_features = self.name_Dropout(name_features)
-
-        # description
-        description_bert_output = self.bert_description(**descriptions)
-
-        description_bert_feature = description_bert_output[0]
-
-        # LSTM
-        packed_output, (hidden, cell) = self.lstm(description_bert_feature)
-        hidden = torch.cat((cell[0, :, :], cell[1, :, :]), dim=1)
-        # hidden = torch.cat((hidden[0, :, :], hidden[1, :, :]), dim=1)
-
-        # from_gcn = torch.take(gcn_op, indices)
-        # from_gcn = gcn_op[torch.add(indices, 7081)]
-        from_gcn = gcn_op[indices]
-
-        # sum
-        all_features = self.weight_sum(name_features, hidden, from_gcn)
-        output = self.mutliHead(all_features)
-
-        return output
-
-epochs = 40
-SEED = 123
-# LEARNING_RATE = 0.001
-LEARNING_RATE = 0.01
-WEIGHT_DECAY = 0.01
-EPSILON = 1e-8
-BATCH_SIZE = 64
-CLASS_NUM = 50
-cat_num = "50"
-
-des_max_length=110 #110#160#200
-name_max_length=10
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
-
-train_data = load_data_train_names(CLASS_NUM)
-test_data = load_data_test_names(CLASS_NUM)
-
-train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
-test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
-
-model = ServeNet(768, CLASS_NUM)
-model.bert_description.requires_grad_(False)
-model.bert_name.requires_grad_(False)
-model = torch.nn.DataParallel(model)
-model = model.cuda()
-model.train()
-
-pytorch_total_params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-pytorch_total_params_all = sum(p.numel() for p in model.parameters())
-print("Trainable: ", pytorch_total_params_trainable)
-print("All: ", pytorch_total_params_all)
-
-criterion = torch.nn.CrossEntropyLoss()
-# optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
-optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
-
-for epoch in range(epochs):
-    print("Epoch:{},lr:{}".format(str(epoch + 1), str(optimizer.state_dict()['param_groups'][0]['lr'])))
-    # scheduler.step()
-    model.train()
-    for data in tqdm(train_dataloader):
-
-        # zero the parameter gradients
-        optimizer.zero_grad()
-
-        descriptions = {'input_ids': data[0].cuda(),
-                        'token_type_ids': data[1].cuda(),
-                        'attention_mask': data[2].cuda()
-                        }
-
-        names = {'input_ids': data[4].cuda(),
-                 'token_type_ids': data[5].cuda(),
-                 'attention_mask': data[6].cuda()
-                 }
-        indices = data[7].cuda()
-        label = data[3].cuda()
-
-        outputs = model(descriptions, names, indices)
-
-        # outputs = model()
-
-        loss = criterion(outputs, label)
-        loss.backward()
-        optimizer.step()
-
-    print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
-    print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
-
-print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM, True))))
-
+print(accuracy(gcn_op[idx_val], labels[idx_val]).item())
+pass
 # ### to do :
 # # check if the index corresponds to the same data in the sentence and graph as well
 

@@ -20,7 +20,8 @@ class weighted_sum3(nn.Module):
         self.w3 = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
 
     def forward(self, input1, input2, input3):
-        return input1 * self.w1 + input2 * self.w2 + input3 * self.w3
+        # return input1 * self.w1 + input2 * self.w2 + input3 * self.w3
+        return input1 * 1 + input2 * 1 + input3 * 1
 
 
 class MutliHead(nn.Module):

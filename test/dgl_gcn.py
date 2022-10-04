@@ -24,6 +24,11 @@ import torch.optim as optim
 import dgl
 import torch as th
 from dgl.nn import GraphConv
+import random
+
+torch.manual_seed(0)
+random.seed(0)
+np.random.seed(0)
 
 test_path = "/home/aa7514/PycharmProjects/servenet_extended/data/50/test.csv"
 train_path = "/home/aa7514/PycharmProjects/servenet_extended/data/50/train.csv"
@@ -39,18 +44,21 @@ api_dataframe.reset_index(inplace=True, drop=True)
 
 from sklearn.model_selection import train_test_split
 
-Train = []
-Test = []
+# Train = []
+# Test = []
 
-for c in set(api_dataframe['ServiceClassification']):
-    C_data = api_dataframe[api_dataframe['ServiceClassification'] == c]
-    # print(C_data.shape)
-    C_Train, C_Test = train_test_split(C_data, test_size=0.2, random_state=0)
-    Train.append(C_Train)
-    Test.append(C_Test)
+# for c in set(api_dataframe['ServiceClassification']):
+#     C_data = api_dataframe[api_dataframe['ServiceClassification'] == c]
+#     # print(C_data.shape)
+#     C_Train, C_Test = train_test_split(C_data, test_size=0.2, random_state=0)
+#     Train.append(C_Train)
+#     Test.append(C_Test)
 
-Train_C = pd.concat(Train)
-Test_C = pd.concat(Test)
+# Train_C = pd.concat(Train)
+# Test_C = pd.concat(Test)
+
+Train_C = api_dataframe.iloc[0:len(train_df)]
+Test_C = api_dataframe.iloc[len(train_df):]
 
 print(Train_C.shape)
 print(Test_C.shape)
@@ -75,7 +83,7 @@ def normalize(mx):
 
 
 def encode_onehot(labels):
-    classes = set(labels)
+    classes = sorted(list(set(labels)), key=str.lower)
     classes_dict = {c: np.identity(len(classes))[i, :] for i, c in
                     enumerate(classes)}
     labels_onehot = np.array(list(map(classes_dict.get, labels)),
@@ -172,7 +180,7 @@ g = dgl.add_self_loop(g)
 cuda = torch.cuda.is_available()
 fastmode = False
 seed = 42
-epochs = 1700  # 2000
+epochs = 3000  # 2000
 lr = 0.01
 # weight_decay = 5e-4
 weight_decay = 0
@@ -298,4 +306,6 @@ print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 test()
 
 # save the model:
-torch.save(model.state_dict(), "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_model")
+# torch.save(model.state_dict(), "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_model_not_random")
+torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
+pass

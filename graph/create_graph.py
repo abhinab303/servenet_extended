@@ -14,6 +14,10 @@ import numpy as np
 import math
 
 from tqdm import tqdm
+from stellargraph import StellarGraph
+import stellargraph as sg
+from simpletransformers.language_representation import RepresentationModel
+
 
 lemmatizer = WordNetLemmatizer()
 english_stopwords = stopwords.words('english')
@@ -26,6 +30,8 @@ test_file = f"{ip_file_dir}{category_num}/test.csv"
 mashup_file = f"{ip_file_dir}mashup.txt"
 
 file_path = "/home/aa7514/PycharmProjects/servenet_extended/files"
+
+
 
 
 def pos_tagger(nltk_tag):
@@ -288,12 +294,15 @@ def sentence_random(api_dataframe, word_embeddings, mashup_dataframe):
 if __name__ == "__main__":
     api_dataframe, mashup_dataframe, merged_descriptions = load_data()
 
+    model = RepresentationModel(model_type="bert", model_name="bert-base-uncased", use_cuda=True)
+    sentence_vectors = model.encode_sentences(merged_descriptions, combine_strategy="mean")
+
     with open(file_path + "/tf_idf.pickle", "rb") as f:
         tfidf_dataframe = pickle.load(f)
 
-        #   with open(output_folder_path + "/sentence_embeddings.pickle", "rb") as f:
-        #     sentence_embeddings = pickle.load(f)
-    # sentence_embeddings = sentence_vectors
+    # with open(output_folder_path + "/sentence_embeddings.pickle", "rb") as f:
+    #     sentence_embeddings = pickle.load(f)
+    sentence_embeddings = sentence_vectors
 
     with open(file_path + "/unique_words_in_corpus.pickle", "rb") as f:
         unique_words_in_corpus = pickle.load(f)
@@ -321,12 +330,14 @@ if __name__ == "__main__":
     construct_word_word_edges(graph, api_dataframe, mashup_dataframe, unique_words_in_corpus, lemmatized_dictionary,
                               word2vec)
 
-    # feature_matrix = np.append(sentence_embeddings, word_embeddings, axis=0)
+    feature_matrix = np.append(sentence_embeddings, word_embeddings, axis=0)
 
     with open(file_path + "/graph.pickle", "wb") as f:
         pickle.dump(graph, f)
 
     with open(file_path + "/feature_matrix.pickle", "wb") as f:
         # pickle.dump(word_embeddings, f)
-        pickle.dump(sentence_random(word_embeddings, api_dataframe, mashup_dataframe), f)
+        pickle.dump(feature_matrix, f)
+        # pickle.dump(sentence_random(word_embeddings, api_dataframe, mashup_dataframe), f)
+
     sentence_random(word_embeddings, api_dataframe, mashup_dataframe)
