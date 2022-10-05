@@ -277,7 +277,7 @@ class ServeNet(torch.nn.Module):
 
 epochs = 40
 SEED = 123
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.002
 # LEARNING_RATE = 0.01
 WEIGHT_DECAY = 0.01
 EPSILON = 1e-8
