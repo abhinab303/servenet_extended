@@ -222,7 +222,7 @@ def evaluteTop5(model, dataLoader):
 
 
 def evaluteTop1_names(model, dataLoader, class_num=50, per_class=False):
-    # model.eval()
+    model.eval()
     correct = 0
     total = 0
     class_correct = list(0. for i in range(class_num))
@@ -267,7 +267,7 @@ def evaluteTop1_names(model, dataLoader, class_num=50, per_class=False):
 
 
 def evaluteTop5_names(model, dataLoader):
-    # model.eval()
+    model.eval()
     correct = 0
     total = 0
     with torch.no_grad():
