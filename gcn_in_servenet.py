@@ -277,7 +277,7 @@ class ServeNet(torch.nn.Module):
 
 epochs = 40
 SEED = 123
-LEARNING_RATE = 0.002
+LEARNING_RATE = 0.001
 # LEARNING_RATE = 0.01
 WEIGHT_DECAY = 0.01
 EPSILON = 1e-8
@@ -309,8 +309,8 @@ print("Trainable: ", pytorch_total_params_trainable)
 print("All: ", pytorch_total_params_all)
 
 criterion = torch.nn.CrossEntropyLoss()
-# optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
-optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
+# optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
 for epoch in range(epochs):
