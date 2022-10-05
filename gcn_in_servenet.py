@@ -345,7 +345,7 @@ for epoch in range(epochs):
     print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
     print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
 
-print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM, True))))
+# print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM, True))))
 
 # ### to do :
 # # check if the index corresponds to the same data in the sentence and graph as well
