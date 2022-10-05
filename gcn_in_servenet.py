@@ -349,5 +349,8 @@ for epoch in range(epochs):
 
 # ### to do :
 # # check if the index corresponds to the same data in the sentence and graph as well
+torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/combined_model")
 
-
+print(model)
+print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
+print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
