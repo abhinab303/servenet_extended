@@ -334,7 +334,7 @@ for epoch in range(epochs):
         indices = data[7].cuda()
         label = data[3].cuda()
 
-        outputs = model(descriptions, names, indices)
+        outputs = model(names, descriptions, indices)
 
         # outputs = model()
 
