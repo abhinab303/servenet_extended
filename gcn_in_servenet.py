@@ -175,7 +175,7 @@ cuda = torch.cuda.is_available()
 fastmode = False
 seed = 42
 epochs = 40  # 2000
-lr = 0.01
+lr = 0.001
 # weight_decay = 5e-4
 weight_decay = 0
 hidden = [1024, 1024]  # [2048, 1024]    # [256, 128]
@@ -281,7 +281,7 @@ LEARNING_RATE = 0.001
 # LEARNING_RATE = 0.01
 WEIGHT_DECAY = 0.01
 EPSILON = 1e-8
-BATCH_SIZE = 64
+BATCH_SIZE = 56
 CLASS_NUM = 50
 cat_num = "50"
 
