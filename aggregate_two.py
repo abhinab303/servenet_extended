@@ -219,7 +219,7 @@ print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, t
 top1 = []
 top5 = []
 comb_list = []
-for i in np.linspace(0, 1, 50):
+for i in np.linspace(0, 1, 5):
     print(i)
     j = 1 - i
     comb = (i, j)
