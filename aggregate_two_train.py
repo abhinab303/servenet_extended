@@ -116,6 +116,7 @@ dropout = 0.5
 LEARNING_RATE = 0.01
 epochs = 100
 CLASS_NUM = 50
+BATCH_SIZE = 1024
 
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -215,6 +216,7 @@ sn_model.eval()
 
 class Aggregator(torch.nn.Module):
     def __init__(self):
+        super(Aggregator, self).__init__()
         self.name_liner = nn.Linear(in_features=2048, out_features=50)
 
     def forward(self, names, descriptions, indices):
@@ -229,8 +231,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 train_data = load_data_train_names(50)
 test_data = load_data_test_names(50)
 
-train_dataloader = DataLoader(train_data, batch_size=56)
-test_dataloader = DataLoader(test_data, batch_size=56)
+train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
+test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
 model = Aggregator()
 model = torch.nn.DataParallel(model)
