@@ -207,10 +207,10 @@ for param in sn_model.parameters():
 sn_model.eval()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
-train_data = load_data_train_names(50)
+# train_data = load_data_train_names(50)
 test_data = load_data_test_names(50)
 
-train_dataloader = DataLoader(train_data, batch_size=56)
+# train_dataloader = DataLoader(train_data, batch_size=56)
 test_dataloader = DataLoader(test_data, batch_size=56)
 
 print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(sn_model, test_dataloader, 50))))
@@ -233,7 +233,7 @@ acc_list = pd.DataFrame(
      'Top5': top5
     })
 
-acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/aggregate.csv')
+acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/aggregate_50.csv')
 
 
 
