@@ -196,6 +196,8 @@ class ServeNet(torch.nn.Module):
 
         final_output = comb[0] * output + comb[1] * from_gcn
 
+        pdb.set_trace()
+
         return final_output
         # return F.log_softmax(output, dim=1)
 
@@ -219,7 +221,7 @@ print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, t
 top1 = []
 top5 = []
 comb_list = []
-for i in np.linspace(0, 1, 5):
+for i in np.linspace(0, 1, 50):
     print(i)
     j = 1 - i
     comb = (i, j)
