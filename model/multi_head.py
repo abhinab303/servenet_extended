@@ -24,7 +24,8 @@ class weighted_sum3(nn.Module):
         # x = input1 * self.w1 + input2 * self.w2
         # return x * self.w3 + input3 * self.w4
         # return input1 * 0 + input2 * 0 + input3 * 1
-        return input1 * self.w1 + input2 * self.w2 + input3 * 0
+        # return input1 * self.w1 + input2 * self.w2 + input3 * 0
+        return input1 * self.w1 + input2 * self.w2
         # return input1 * self.w1 + input2 * self.w2 + input3 * self.w3
 
 
