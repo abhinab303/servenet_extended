@@ -196,7 +196,7 @@ class ServeNet(torch.nn.Module):
 
         final_output = comb[0] * output + comb[1] * from_gcn
 
-        return output
+        return final_output
         # return F.log_softmax(output, dim=1)
 
 
