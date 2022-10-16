@@ -20,7 +20,7 @@ import dgl
 from dgl.nn import GraphConv
 
 from transformers import BertModel
-from model.multi_head import weighted_sum3, MutliHead
+from model.multi_head import weighted_sum, MutliHead
 
 from utils import load_data_train_names, load_data_test_names, evaluteTop5_names, evaluteTop1_names
 
@@ -217,14 +217,17 @@ sn_model.eval()
 class Aggregator(torch.nn.Module):
     def __init__(self):
         super(Aggregator, self).__init__()
-        self.name_liner = nn.Linear(in_features=2048, out_features=50)
+        self.weight_sum = weighted_sum()
+        self.name_liner = nn.Linear(in_features=1024, out_features=50)
 
     def forward(self, names, descriptions, indices):
         from_sn = sn_model(names, descriptions, indices)
         from_gcn = gcn_op[indices]
-        x = torch.cat((from_sn, from_gcn), 1)
+        # x = torch.cat((from_sn, from_gcn), 1)
+        x = self.weight_sum(from_sn, from_gcn)
         output = self.name_liner(x)
-        return F.log_softmax(output, dim=1)
+        # return F.log_softmax(output, dim=1)
+        return output
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
