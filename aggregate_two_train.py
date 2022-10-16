@@ -226,7 +226,7 @@ class Aggregator(torch.nn.Module):
         # x = torch.cat((from_sn, from_gcn), 1)
         x = self.weight_sum(from_sn, from_gcn)
         output = self.name_liner(x)
-        # return F.log_softmax(output, dim=1)
+        return F.log_softmax(output, dim=1)
         return output
 
 
