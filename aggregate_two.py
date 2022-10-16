@@ -216,5 +216,25 @@ test_dataloader = DataLoader(test_data, batch_size=56)
 print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(sn_model, test_dataloader, 50))))
 print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, test_dataloader))))
 
+top1 = []
+top5 = []
+comb_list = []
+for i in np.linspace(0, 1, 50):
+    print(i)
+    j = 1 - i
+    comb = (i, j)
+    top1.append(evaluteTop1_names(sn_model, test_dataloader, 50))
+    top5.append(evaluteTop5_names(sn_model, test_dataloader))
+    comb_list.append(f"{i}, {j}")
 
-pdb.set_trace()
+acc_list = pd.DataFrame(
+    {'Comb': comb_list,
+     'Top1': top1,
+     'Top5': top5
+    })
+
+acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/aggregate.csv')
+
+
+
+# pdb.set_trace()
