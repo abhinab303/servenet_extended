@@ -20,7 +20,7 @@ import dgl
 from dgl.nn import GraphConv
 
 from transformers import BertModel
-from model.multi_head import weighted_sum, MutliHead
+from model.multi_head import weighted_sum3, MutliHead, weighted_sum
 
 from utils import load_data_train_names, load_data_test_names, evaluteTop5_names, evaluteTop1_names
 
@@ -70,8 +70,8 @@ class GCN(nn.Module):
         x = F.dropout(x, self.dropout, training=self.training)
         output = self.final_liner(x)
         # return F.log_softmax(x, dim=1)
-        return x
-        # return F.log_softmax(output, dim=1)
+        # return x
+        return F.log_softmax(output, dim=1)
 
 
 with open(graph_path, "rb") as f:
@@ -197,14 +197,16 @@ class ServeNet(torch.nn.Module):
 
         # sum
         all_features = self.weight_sum(name_features, hidden, from_gcn)
-        # output = self.mutliHead(all_features)
+        output = self.mutliHead(all_features)
 
         # final_output = comb[0] * output + comb[1] * from_gcn
 
         # pdb.set_trace()
 
-        return all_features
+        # return all_features
         # return F.log_softmax(output, dim=1)
+
+        return output
 
 
 sn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/combined_model_w4")
@@ -225,9 +227,9 @@ class Aggregator(torch.nn.Module):
         from_gcn = gcn_op[indices]
         # x = torch.cat((from_sn, from_gcn), 1)
         x = self.weight_sum(from_sn, from_gcn)
-        output = self.name_liner(x)
-        return F.log_softmax(output, dim=1)
-        return output
+        # output = self.name_liner(x)
+        # return F.log_softmax(output, dim=1)
+        return x
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
