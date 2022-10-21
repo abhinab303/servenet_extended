@@ -298,6 +298,7 @@ for epoch in range(epochs):
         # outputs = model()
 
         loss = criterion(outputs, label)
+        pdb.set_trace()
         loss.backward()
         optimizer.step()
         # for p in model.module.parameters():
