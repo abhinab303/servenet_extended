@@ -240,9 +240,9 @@ train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
 test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
 model = Aggregator()
+model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
+model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
 model = torch.nn.DataParallel(model)
-model.module.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
-model.module.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
 model = model.cuda()
 model.train()
 
@@ -262,7 +262,6 @@ for epoch in range(epochs):
     model.train()
     for data in tqdm(train_dataloader):
         # zero the parameter gradients
-
         optimizer.zero_grad()
 
         descriptions = {'input_ids': data[0].cuda(),
