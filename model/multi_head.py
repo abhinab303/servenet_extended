@@ -12,6 +12,16 @@ class weighted_sum(nn.Module):
         return input1 * self.w1 + input2 * self.w2
 
 
+class flex_ws(nn.Module):
+    def __init__(self):
+        super(weighted_sum, self).__init__()
+        self.w1 = nn.Parameter(torch.FloatTensor(1, 50), requires_grad=True)
+        self.w2 = nn.Parameter(torch.FloatTensor(1, 50), requires_grad=True)
+
+    def forward(self, input1, input2):
+        return input1 * self.w1.repeat(input1.shape[0], 1) + input2 * self.w2.repeat(input2.shape[0], 1)
+
+
 class weighted_sum3(nn.Module):
     def __init__(self):
         super(weighted_sum3, self).__init__()
