@@ -72,6 +72,7 @@ class GCN(nn.Module):
         # return F.log_softmax(x, dim=1)
         # return x
         return F.log_softmax(output, dim=1)
+        # return F.softmax(output, dim=1)
 
 
 with open(graph_path, "rb") as f:
@@ -113,10 +114,10 @@ cuda = torch.cuda.is_available()
 seed = 42
 hidden = [1024, 1024]
 dropout = 0.5
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.01
 epochs = 100
 CLASS_NUM = 50
-BATCH_SIZE = 1024
+BATCH_SIZE = 256
 
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -220,13 +221,14 @@ class Aggregator(torch.nn.Module):
     def __init__(self):
         super(Aggregator, self).__init__()
         # self.weight_sum = weighted_sum()
-        self.weight_sum = flex_ws()
+        self.weight_sum = weighted_sum()
         # self.name_liner = nn.Linear(in_features=1024, out_features=50)
 
     def forward(self, names, descriptions, indices):
         from_sn = sn_model(names, descriptions, indices)
         from_gcn = gcn_op[indices]
         # x = torch.cat((from_sn, from_gcn), 1)
+        # x = self.weight_sum(from_sn, F.softmax(from_gcn, dim=1))
         x = self.weight_sum(from_sn, from_gcn)
         # output = self.name_liner(x)
         # return F.log_softmax(output, dim=1)
@@ -241,14 +243,23 @@ train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
 test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
 model = Aggregator()
-# model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
-# model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
+model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
+model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
 # torch.nn.init.xavier_uniform(model.weight_sum)
-for p in model.parameters():
-    p.data.clamp_(-1.0, 1.0)
+# for p in model.parameters():
+#     p.data.clamp_(0, 0.7)
 model = torch.nn.DataParallel(model)
 model = model.cuda()
 model.train()
+
+w11 = model.module.weight_sum.w1
+w22 = model.module.weight_sum.w2
+w1 = w11/(w11 + w22)
+w2 = w22/(w11 + w22)
+print("w11: ", w11)
+print("w22: ", w22)
+print("w1: ", w1)
+print("w2: ", w2)
 
 pytorch_total_params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
 pytorch_total_params_all = sum(p.numel() for p in model.parameters())
@@ -287,12 +298,20 @@ for epoch in range(epochs):
         loss = criterion(outputs, label)
         loss.backward()
         optimizer.step()
-        for p in model.module.parameters():
-            p.data.clamp_(-1.0, 1.0)
+        # for p in model.module.parameters():
+        #     p.data.clamp_(0, 0.7)
 
     print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
     print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
-    pdb.set_trace()
+    w11 = model.module.weight_sum.w1
+    w22 = model.module.weight_sum.w2
+    w1 = w11/(w11 + w22)
+    w2 = w22/(w11 + w22)
+    print("w11: ", w11)
+    print("w22: ", w22)
+    print("w1: ", w1)
+    print("w2: ", w2)
+    # pdb.set_trace()
 
 print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(sn_model, test_dataloader, 50))))
 print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, test_dataloader))))

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import pdb
 
 
 class weighted_sum(nn.Module):
@@ -9,7 +10,11 @@ class weighted_sum(nn.Module):
         self.w2 = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
 
     def forward(self, input1, input2):
-        return input1 * self.w1 + input2 * self.w2
+        # return input1 * self.w1 + input2 * self.w2
+        # return input1 * self.w1 + input2 * (1 - self.w1)
+        w1 = self.w1/(self.w1 + self.w2)
+        w2 = self.w2/(self.w1 + self.w2)
+        return input1 * w1 + input2 * w2
 
 
 class flex_ws(nn.Module):
@@ -19,6 +24,7 @@ class flex_ws(nn.Module):
         self.w2 = nn.Parameter(torch.FloatTensor(1, 50), requires_grad=True)
 
     def forward(self, input1, input2):
+        # pdb.set_trace()
         return input1 * self.w1.repeat(input1.shape[0], 1) + input2 * self.w2.repeat(input2.shape[0], 1)
 
 
