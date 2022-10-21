@@ -14,7 +14,7 @@ class weighted_sum(nn.Module):
 
 class flex_ws(nn.Module):
     def __init__(self):
-        super(weighted_sum, self).__init__()
+        super(flex_ws, self).__init__()
         self.w1 = nn.Parameter(torch.FloatTensor(1, 50), requires_grad=True)
         self.w2 = nn.Parameter(torch.FloatTensor(1, 50), requires_grad=True)
 
