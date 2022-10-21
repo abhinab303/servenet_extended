@@ -220,7 +220,7 @@ class Aggregator(torch.nn.Module):
     def __init__(self):
         super(Aggregator, self).__init__()
         self.weight_sum = weighted_sum()
-        self.name_liner = nn.Linear(in_features=1024, out_features=50)
+        # self.name_liner = nn.Linear(in_features=1024, out_features=50)
 
     def forward(self, names, descriptions, indices):
         from_sn = sn_model(names, descriptions, indices)
@@ -284,6 +284,7 @@ for epoch in range(epochs):
 
     print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
     print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
+    pdb.set_trace()
 
 print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(sn_model, test_dataloader, 50))))
 print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, test_dataloader))))
