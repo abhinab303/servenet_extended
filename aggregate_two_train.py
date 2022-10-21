@@ -227,6 +227,8 @@ class Aggregator(torch.nn.Module):
     def forward(self, names, descriptions, indices):
         from_sn = sn_model(names, descriptions, indices)
         from_gcn = gcn_op[indices]
+        from_sn = torch.nn.functional.normalize(from_sn)
+        from_gcn = torch.nn.functional.normalize(from_gcn)
         # x = torch.cat((from_sn, from_gcn), 1)
         # x = self.weight_sum(from_sn, F.softmax(from_gcn, dim=1))
         x = self.weight_sum(from_sn, from_gcn)

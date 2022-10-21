@@ -10,11 +10,11 @@ class weighted_sum(nn.Module):
         self.w2 = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
 
     def forward(self, input1, input2):
-        # return input1 * self.w1 + input2 * self.w2
+        return input1 * self.w1 + input2 * self.w2
         # return input1 * self.w1 + input2 * (1 - self.w1)
-        w1 = self.w1/(self.w1 + self.w2)
-        w2 = self.w2/(self.w1 + self.w2)
-        return input1 * w1 + input2 * w2
+        # w1 = self.w1/(self.w1 + self.w2)
+        # w2 = self.w2/(self.w1 + self.w2)
+        # return input1 * w1 + input2 * w2
 
 
 class flex_ws(nn.Module):
