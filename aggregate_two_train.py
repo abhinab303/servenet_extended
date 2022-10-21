@@ -289,3 +289,5 @@ print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(sn_model, t
 print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, test_dataloader))))
 
 # pdb.set_trace()
+
+torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/aggregated_model")
