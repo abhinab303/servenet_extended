@@ -243,7 +243,9 @@ test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 model = Aggregator()
 # model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
 # model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
-torch.nn.init.xavier_uniform(model.weight_sum)
+# torch.nn.init.xavier_uniform(model.weight_sum)
+for p in model.parameters():
+    p.data.clamp_(-1.0, 1.0)
 model = torch.nn.DataParallel(model)
 model = model.cuda()
 model.train()
@@ -285,7 +287,7 @@ for epoch in range(epochs):
         loss = criterion(outputs, label)
         loss.backward()
         optimizer.step()
-        for p in model.parameters():
+        for p in model.module.parameters():
             p.data.clamp_(-1.0, 1.0)
 
     print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
