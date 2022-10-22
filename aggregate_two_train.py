@@ -279,7 +279,7 @@ target_wts = np.array([0.01842012, 0.01133546, 0.01168969, 0.00956429, 0.0102727
               0.03294368, 0.02160822, 0.00779313, 0.02373362, 0.05703153,
               0.02196245, 0.02089975, 0.02089975, 0.01452356, 0.04109104])
 
-criterion = torch.nn.CrossEntropyLoss(1/target_wts)
+criterion = torch.nn.CrossEntropyLoss(torch.tensor(1/target_wts))
 optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 # optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
