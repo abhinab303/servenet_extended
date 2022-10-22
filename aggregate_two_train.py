@@ -268,7 +268,18 @@ pytorch_total_params_all = sum(p.numel() for p in model.parameters())
 print("Trainable: ", pytorch_total_params_trainable)
 print("All: ", pytorch_total_params_all)
 
-criterion = torch.nn.CrossEntropyLoss()
+target_wts = np.array([0.01842012, 0.01133546, 0.01168969, 0.00956429, 0.01027276,
+              0.01700319, 0.01346086, 0.00814736, 0.01664896, 0.01594049,
+              0.02444208, 0.01133546, 0.00850159, 0.02125399, 0.02444208,
+              0.03365214, 0.00921006, 0.00885583, 0.06765852, 0.02019129,
+              0.02692171, 0.00779313, 0.01133546, 0.00885583, 0.03152674,
+              0.00956429, 0.00885583, 0.0439249, 0.01594049, 0.01027276,
+              0.00956429, 0.0439249, 0.01452356, 0.01239816, 0.00991853,
+              0.01983705, 0.02833865, 0.01983705, 0.02869288, 0.01346086,
+              0.03294368, 0.02160822, 0.00779313, 0.02373362, 0.05703153,
+              0.02196245, 0.02089975, 0.02089975, 0.01452356, 0.04109104])
+
+criterion = torch.nn.CrossEntropyLoss(1/target_wts)
 optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 # optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
