@@ -38,6 +38,8 @@ test_df["ServiceDescription"] = test_df["ServiceDescription"].str.replace(r'[^A-
 api_dataframe = pd.concat([train_df, test_df], axis=0)
 api_dataframe.reset_index(inplace=True, drop=True)
 
+pdb.set_trace()
+
 # load gcn model:
 
 Train_C = api_dataframe.iloc[0:len(train_df)]
