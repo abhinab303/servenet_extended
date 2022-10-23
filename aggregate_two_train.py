@@ -315,8 +315,8 @@ for epoch in range(epochs):
         # outputs = model()
 
         loss = criterion(outputs, label)
-        pdb.set_trace()
-        loss_sum = loss_sum + loss.label[0]
+        # pdb.set_trace()
+        loss_sum = loss_sum + loss.item()
         loss.backward()
         optimizer.step()
         # for p in model.module.parameters():
