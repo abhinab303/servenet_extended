@@ -279,15 +279,21 @@ target_wts = np.array([0.01842012, 0.01133546, 0.01168969, 0.00956429, 0.0102727
               0.03294368, 0.02160822, 0.00779313, 0.02373362, 0.05703153,
               0.02196245, 0.02089975, 0.02089975, 0.01452356, 0.04109104])
 
-criterion = torch.nn.CrossEntropyLoss(torch.tensor(1/target_wts).cuda().float())
+# criterion = torch.nn.CrossEntropyLoss(torch.tensor(1/target_wts).cuda().float())
+criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 # optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+
+loss_list = []
+acc1_list = []
+acc5_list = []
 
 for epoch in range(epochs):
     print("Epoch:{},lr:{}".format(str(epoch + 1), str(optimizer.state_dict()['param_groups'][0]['lr'])))
     # scheduler.step()
     model.train()
+    loss_sum = 0
     for data in tqdm(train_dataloader):
         # zero the parameter gradients
         optimizer.zero_grad()
@@ -310,13 +316,19 @@ for epoch in range(epochs):
 
         loss = criterion(outputs, label)
         pdb.set_trace()
+        loss_sum = loss_sum + loss.label[0]
         loss.backward()
         optimizer.step()
         # for p in model.module.parameters():
         #     p.data.clamp_(0, 0.7)
 
-    print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
-    print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
+    top_1_acc = evaluteTop1_names(model, test_dataloader, CLASS_NUM)
+    top_5_acc = evaluteTop5_names(model, test_dataloader)
+    loss_list.append(loss_sum)
+    acc1_list.append(top_1_acc)
+    acc5_list.append(top_5_acc)
+    print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
+    print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
     w11 = model.module.weight_sum.w1
     w22 = model.module.weight_sum.w2
     w1 = w11/(w11 + w22)
@@ -330,6 +342,15 @@ for epoch in range(epochs):
 print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(sn_model, test_dataloader, 50))))
 print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(sn_model, test_dataloader))))
 
+
+acc_list = pd.DataFrame(
+    {'loss': loss_list,
+     'Top1': acc1_list,
+     'Top5': acc5_list
+    })
+
+acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/agg_train_loss.csv')
+
 # pdb.set_trace()
 
-torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/aggregated_model")
+# torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/aggregated_model")
