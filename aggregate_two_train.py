@@ -247,8 +247,8 @@ train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
 test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
 model = Aggregator()
-model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
-model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
+# model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.1]))
+# model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.9]))
 # torch.nn.init.xavier_uniform(model.weight_sum)
 # for p in model.parameters():
 #     p.data.clamp_(0, 0.7)
@@ -351,7 +351,7 @@ acc_list = pd.DataFrame(
      'Top5': acc5_list
     })
 
-acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/agg_train_loss_gcn_bal.csv')
+acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/agg_train_loss_rnd_ini.csv')
 
 # pdb.set_trace()
 
