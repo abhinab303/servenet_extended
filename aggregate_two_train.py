@@ -351,7 +351,7 @@ acc_list = pd.DataFrame(
      'Top5': acc5_list
     })
 
-acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/agg_train_loss.csv')
+acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/agg_train_loss_gcn_bal.csv')
 
 # pdb.set_trace()
 
