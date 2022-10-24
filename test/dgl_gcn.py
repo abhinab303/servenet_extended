@@ -64,7 +64,7 @@ Test_C = api_dataframe.iloc[len(train_df):]
 
 print(Train_C.shape)
 print(Test_C.shape)
-pdb.set_trace()
+# pdb.set_trace()
 Trainlabelcount = Train_C['ServiceClassification'].value_counts()
 trainP = Trainlabelcount / Trainlabelcount.sum()
 Testlabelcount = Test_C['ServiceClassification'].value_counts()
@@ -183,7 +183,7 @@ g = dgl.add_self_loop(g)
 cuda = torch.cuda.is_available()
 fastmode = False
 seed = 42
-epochs = 1000  # 2000
+epochs = 3000  # 2000
 lr = 0.01
 # weight_decay = 5e-4
 weight_decay = 0
