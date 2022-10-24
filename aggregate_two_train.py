@@ -71,8 +71,9 @@ class GCN(nn.Module):
         output = self.final_liner(x)
         # return F.log_softmax(x, dim=1)
         # return x
-        return F.log_softmax(output, dim=1)
+        # return F.log_softmax(output, dim=1)
         # return F.softmax(output, dim=1)
+        return output
 
 
 with open(graph_path, "rb") as f:
@@ -140,7 +141,7 @@ if cuda:
     idx_test = idx_test.cuda()
 
 
-gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
+gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model5")
 for param in gcn_model.parameters():
     param.requires_grad = False
 gcn_model.eval()
@@ -227,8 +228,9 @@ class Aggregator(torch.nn.Module):
     def forward(self, names, descriptions, indices):
         from_sn = sn_model(names, descriptions, indices)
         from_gcn = gcn_op[indices]
-        from_sn = torch.nn.functional.normalize(from_sn)
-        from_gcn = torch.nn.functional.normalize(from_gcn)
+        pdb.set_trace()
+        # from_sn = torch.nn.functional.normalize(from_sn)
+        # from_gcn = torch.nn.functional.normalize(from_gcn)
         # x = torch.cat((from_sn, from_gcn), 1)
         # x = self.weight_sum(from_sn, F.softmax(from_gcn, dim=1))
         x = self.weight_sum(from_sn, from_gcn)
