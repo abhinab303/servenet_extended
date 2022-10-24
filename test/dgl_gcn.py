@@ -1,5 +1,7 @@
 from __future__ import division
 from __future__ import print_function
+
+import pdb
 import pickle
 import pandas as pd
 import numpy as np
@@ -62,7 +64,7 @@ Test_C = api_dataframe.iloc[len(train_df):]
 
 print(Train_C.shape)
 print(Test_C.shape)
-
+pdb.set_trace()
 Trainlabelcount = Train_C['ServiceClassification'].value_counts()
 trainP = Trainlabelcount / Trainlabelcount.sum()
 Testlabelcount = Test_C['ServiceClassification'].value_counts()
@@ -139,7 +141,8 @@ class GCN(nn.Module):
         x = F.dropout(x, self.dropout, training=self.training)
         output = self.final_liner(x)
         # return F.log_softmax(x, dim=1)
-        return F.log_softmax(output, dim=1)
+        # return F.log_softmax(output, dim=1)
+        return output
 
 
 with open(graph_path, "rb") as f:
@@ -180,7 +183,7 @@ g = dgl.add_self_loop(g)
 cuda = torch.cuda.is_available()
 fastmode = False
 seed = 42
-epochs = 3000  # 2000
+epochs = 1000  # 2000
 lr = 0.01
 # weight_decay = 5e-4
 weight_decay = 0
@@ -307,5 +310,5 @@ test()
 
 # save the model:
 # torch.save(model.state_dict(), "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_model_not_random")
-torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
+torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model5")
 pass
