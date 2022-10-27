@@ -21,7 +21,7 @@ class ServeNet(torch.nn.Module):
 
         self.weight_sum = weighted_sum()
         # self.mutliHead = MutliHead(num_classes=CLASS_NUM)
-        self.final_liner = nn.Linear(in_features=self.hiddenSize, out_features=CLASS_NUM)
+        self.final_liner = nn.Linear(in_features=1024, out_features=CLASS_NUM)
 
     def forward(self, names, descriptions):
         self.lstm.flatten_parameters()
