@@ -5,9 +5,8 @@ from torch.utils.data import DataLoader
 import torch
 from torch.optim import lr_scheduler
 
-from utils import load_data_train_names, load_data_test_names, evaluteTop5_names, evaluteTop1_names
+from utils import load_data_train_names, load_data_test_names, eval_top1_sn, eval_top5_sn
 from model.servenetlt import ServeNet
-
 
 epochs = 40
 SEED = 123
@@ -18,8 +17,8 @@ BATCH_SIZE = 64
 CLASS_NUM = 50
 cat_num = "50"
 
-des_max_length=110 #110#160#200
-name_max_length=10
+des_max_length = 110  # 110#160#200
+name_max_length = 10
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 
@@ -51,7 +50,6 @@ if __name__ == "__main__":
         # scheduler.step()
         model.train()
         for data in tqdm(train_dataloader):
-
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -66,7 +64,7 @@ if __name__ == "__main__":
                      }
             label = data[3].cuda()
 
-            outputs = model(descriptions, names)
+            outputs = model(names, descriptions)
 
             # outputs = model()
 
@@ -74,8 +72,9 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
-        print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
-        print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
+        print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM))))
+        print("=======>top5 acc on the test:{}".format(str(eval_top5_sn(model, test_dataloader))))
 
-    print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM, True))))
+    # print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM, True))))
 
+    torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt")

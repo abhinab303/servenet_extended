@@ -293,3 +293,76 @@ def evaluteTop5_names(model, dataLoader):
             correct += torch.eq(pred, y_resize).sum().float().item()
 
     return 100 * correct / total
+
+def eval_top1_sn(model, dataLoader, class_num=50, per_class=False):
+    model.eval()
+    correct = 0
+    total = 0
+    class_correct = list(0. for i in range(class_num))
+    class_total = list(0. for i in range(class_num))
+    with torch.no_grad():
+        for data in dataLoader:
+            descriptions = {'input_ids': data[0].cuda(),
+                            'token_type_ids': data[1].cuda(),
+                            'attention_mask': data[2].cuda()
+                            }
+
+            names = {'input_ids': data[4].cuda(),
+                     'token_type_ids': data[5].cuda(),
+                     'attention_mask': data[6].cuda()
+                     }
+
+            label = data[3].cuda()
+
+            outputs = model(names, descriptions)
+
+            _, predicted = torch.max(outputs, 1)
+            total += label.size(0)
+            correct += (predicted == label).sum().item()
+
+            # each class accuracy
+            c = (predicted == label).squeeze()
+            for i in range(len(label)):
+                labels = label[i]
+                class_correct[labels] += c[i].item()
+                class_total[labels] += 1
+    if per_class:
+        print('each class accuracy of: ' )
+        for i in range(class_num):
+            #print('Accuracy of ======' ,100 * class_correct[i] / class_total[i])
+            print(100 * class_correct[i] / class_total[i])
+
+        print('total class_total: ')
+        for i in range(class_num):
+            print(class_total[i])
+
+    return 100 * correct / total
+
+
+def eval_top5_sn(model, dataLoader):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in dataLoader:
+            descriptions = {'input_ids': data[0].cuda(),
+                            'token_type_ids': data[1].cuda(),
+                            'attention_mask': data[2].cuda()
+                            }
+
+            names = {'input_ids': data[4].cuda(),
+                     'token_type_ids': data[5].cuda(),
+                     'attention_mask': data[6].cuda()
+                     }
+
+            label = data[3].cuda()
+
+            outputs = model(names, descriptions)
+
+            maxk = max((1, 5))
+            y_resize = label.view(-1, 1)
+            _, pred = outputs.topk(maxk, 1, True, True)
+            total += label.size(0)
+            correct += torch.eq(pred, y_resize).sum().float().item()
+
+    return 100 * correct / total
