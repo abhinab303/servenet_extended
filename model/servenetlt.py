@@ -50,7 +50,7 @@ class ServeNet(torch.nn.Module):
         # sum
         all_features = self.weight_sum(name_features, hidden)
         output = self.mutliHead(all_features)
-        output = self.final_ReLU(output)
-        output = self.final_Dropout(output)
-        output = self.final_liner(output)
+        # output = self.final_ReLU(output)
+        # output = self.final_Dropout(output)
+        # output = self.final_liner(output)
         return output

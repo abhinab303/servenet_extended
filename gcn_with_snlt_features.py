@@ -179,9 +179,9 @@ for data in tqdm(train_dataloader):
              'attention_mask': data[6].cuda()
              }
     outputs = sn_model(names, descriptions)
-
-    pdb.set_trace()
-
+    embeddings.extend(outputs)
+    # pdb.set_trace()
+pdb.set_trace()
 training_data = Train_C
 testing_data = Test_C
 TrainIndex = training_data.index.values.tolist()
@@ -194,7 +194,8 @@ for node_index, node in graph_copy.nodes(data=True):
     except Exception as ex:
         continue
 
-features = sp.csr_matrix(feature_matrix)
+# features = sp.csr_matrix(feature_matrix)
+features = sp.csr_matrix(embeddings)
 labels = encode_onehot(api_dataframe['ServiceClassification'])
 # features = normalize(features)
 idx_train = TrainIndex
