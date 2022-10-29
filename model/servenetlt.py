@@ -23,8 +23,8 @@ class ServeNet(torch.nn.Module):
         self.final_liner = nn.Linear(in_features=1024, out_features=CLASS_NUM)
         self.final_ReLU = nn.ReLU()
         self.final_Dropout = nn.Dropout(p=0.1)
-        # self.mutliHead = MutliHead(num_classes=CLASS_NUM)
-        self.mutliHead = MutliHead(num_classes=1024)
+        self.mutliHead = MutliHead(num_classes=CLASS_NUM)
+        # self.mutliHead = MutliHead(num_classes=1024)
 
 
     def forward(self, names, descriptions):

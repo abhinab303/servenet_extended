@@ -82,4 +82,4 @@ if __name__ == "__main__":
 
     # print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM, True))))
 
-    torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt")
+    torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_or")
