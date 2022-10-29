@@ -179,7 +179,7 @@ for data in tqdm(train_dataloader):
              'attention_mask': data[6].cuda()
              }
     outputs = sn_model(names, descriptions)
-    embeddings.extend(outputs)
+    embeddings.extend(outputs.numpy())
     # pdb.set_trace()
 pdb.set_trace()
 training_data = Train_C
