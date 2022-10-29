@@ -188,11 +188,11 @@ TrainIndex = training_data.index.values.tolist()
 TestIndex = testing_data.index.values.tolist()
 
 graph_copy = graph.copy()
-for node_index, node in graph_copy.nodes(data=True):
-    try:
-        node["feature"] = feature_matrix[node_index]
-    except Exception as ex:
-        continue
+# for node_index, node in graph_copy.nodes(data=True):
+#     try:
+#         node["feature"] = feature_matrix[node_index]
+#     except Exception as ex:
+#         continue
 
 # features = sp.csr_matrix(feature_matrix)
 features = sp.csr_matrix(embeddings)
