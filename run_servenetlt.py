@@ -8,6 +8,8 @@ from torch.optim import lr_scheduler
 from utils import load_data_train_names, load_data_test_names, eval_top1_sn, eval_top5_sn
 from model.servenetlt import ServeNet
 
+import pdb
+
 epochs = 40
 SEED = 123
 LEARNING_RATE = 0.001
@@ -34,6 +36,8 @@ if __name__ == "__main__":
     model = torch.nn.DataParallel(model)
     model = model.cuda()
     model.train()
+
+    pdb.set_trace()
 
     pytorch_total_params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     pytorch_total_params_all = sum(p.numel() for p in model.parameters())
@@ -72,6 +76,7 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
+        pdb.set_trace()
         print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM))))
         print("=======>top5 acc on the test:{}".format(str(eval_top5_sn(model, test_dataloader))))
 
