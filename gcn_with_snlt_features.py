@@ -194,8 +194,15 @@ graph_copy = graph.copy()
 #     except Exception as ex:
 #         continue
 
+f2 = feature_matrix[len(embeddings):]
+f1 = np.array(embeddings)
+dd = embeddings[0].shape[0] - feature_matrix.shape[1]
+f2p = np.pad(f2, ((0, 0), (0, dd)), 'constant')
+new_emb = np.concatenate((f1, f2p), axis=0)
+
 # features = sp.csr_matrix(feature_matrix)
-embeddings = np.array(embeddings)
+# embeddings = np.array(embeddings)
+embeddings = new_emb
 features = sp.csr_matrix(embeddings)
 labels = encode_onehot(api_dataframe['ServiceClassification'])
 # features = normalize(features)
