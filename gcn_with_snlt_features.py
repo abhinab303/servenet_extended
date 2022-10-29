@@ -183,7 +183,7 @@ for data in tqdm(train_dataloader):
     outputs = sn_model(names, descriptions)
     embeddings.extend(outputs.cpu().numpy())
     # pdb.set_trace()
-pdb.set_trace()
+# pdb.set_trace()
 training_data = Train_C
 testing_data = Test_C
 TrainIndex = training_data.index.values.tolist()
@@ -202,10 +202,10 @@ dd = embeddings[0].shape[0] - feature_matrix.shape[1]
 f2p = np.pad(f2, ((0, 0), (0, dd)), 'constant')
 new_emb = np.concatenate((f1, f2p), axis=0)
 
-# features = sp.csr_matrix(feature_matrix)
+features = sp.csr_matrix(feature_matrix)
 # embeddings = np.array(embeddings)
-embeddings = new_emb
-features = sp.csr_matrix(embeddings)
+# embeddings = new_emb
+# features = sp.csr_matrix(embeddings)
 labels = encode_onehot(api_dataframe['ServiceClassification'])
 # features = normalize(features)
 idx_train = TrainIndex
