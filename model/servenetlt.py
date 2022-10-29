@@ -20,9 +20,12 @@ class ServeNet(torch.nn.Module):
                             bidirectional=True)
 
         self.weight_sum = weighted_sum()
+        self.final_liner = nn.Linear(in_features=1024, out_features=CLASS_NUM)
+        self.final_ReLU = nn.ReLU()
+        self.final_Dropout = nn.Dropout(p=0.1)
         # self.mutliHead = MutliHead(num_classes=CLASS_NUM)
         self.mutliHead = MutliHead(num_classes=1024)
-        self.final_liner = nn.Linear(in_features=1024, out_features=CLASS_NUM)
+
 
     def forward(self, names, descriptions):
         self.lstm.flatten_parameters()
@@ -47,5 +50,7 @@ class ServeNet(torch.nn.Module):
         # sum
         all_features = self.weight_sum(name_features, hidden)
         output = self.mutliHead(all_features)
+        output = self.final_ReLU(output)
+        output = self.final_Dropout(output)
         output = self.final_liner(output)
         return output
