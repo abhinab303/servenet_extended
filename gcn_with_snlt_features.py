@@ -129,7 +129,8 @@ class GCN(nn.Module):
         super(GCN, self).__init__()
 
         self.gc1 = GraphConv(nfeat, nhid1, norm='both', weight=True, bias=True)
-        self.gc2 = GraphConv(nhid1, nhid2, norm='both', weight=True, bias=True)
+        # self.gc2 = GraphConv(nhid1, nhid2, norm='both', weight=True, bias=True)
+        self.gc2 = GraphConv(nhid1, nclass, norm='both', weight=True, bias=True)
         # self.gc3 = GraphConvolution(nhid2, nclass)
         self.dropout = dropout
         self.final_liner = nn.Linear(in_features=nhid2, out_features=nclass)
@@ -137,9 +138,10 @@ class GCN(nn.Module):
     def forward(self, g, x):
         x = F.relu(self.gc1(g, x))
         x = F.dropout(x, self.dropout, training=self.training)
-        x = F.relu(self.gc2(g, x))
-        x = F.dropout(x, self.dropout, training=self.training)
-        output = self.final_liner(x)
+        # x = F.relu(self.gc2(g, x))
+        output = self.gc2(g, x)
+        # x = F.dropout(x, self.dropout, training=self.training)
+        # output = self.final_liner(x)
         # return F.log_softmax(x, dim=1)
         # return F.log_softmax(output, dim=1)
         return output
