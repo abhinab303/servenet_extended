@@ -158,6 +158,51 @@ def load_data_test_names(catagory_num, max_len_desc=100, max_len_name=10,):
     return test_data
 
 
+def load_all_data(catagory_num, max_len_desc=100, max_len_name=10,):
+    test_file = f"{ip_file_dir}{catagory_num}/test.csv"
+    train_file = f"{ip_file_dir}{catagory_num}/train.csv"
+    train_df = pd.read_csv(train_file)
+    test_df = pd.read_csv(test_file)
+    df = pd.concat([train_df, test_df], axis=0)
+    df.reset_index(inplace=True, drop=True)
+
+    values = np.array(df.ServiceClassification)
+    label_encoder = LabelEncoder()
+    # integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded = encode_onehot(df.ServiceClassification).transpose(1, 0)
+    integer_encoded = integer_encoded = torch.LongTensor(np.where(encode_onehot(df.ServiceClassification))[1])
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+    # descriptions
+    descriptions = df["ServiceDescription"].tolist()
+    desc_tokens = tokenizer(descriptions, return_tensors="pt",
+                            max_length=max_len_desc,
+                            padding=True,
+                            truncation=True)
+
+    # names
+    names = df["ServiceName"].tolist()
+    name_tokens = tokenizer(names, return_tensors="pt",
+                            #  model_max_length=100,
+                            max_length=max_len_name,
+                            padding=True,
+                            truncation=True)
+
+    total_targets = torch.tensor(integer_encoded)
+
+    desc_list = []
+    for key, value in desc_tokens.items():
+        desc_list.append(torch.tensor(value))
+
+    name_list = []
+    for key, value in name_tokens.items():
+        name_list.append(torch.tensor(value))
+
+    test_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values))
+
+    return test_data
+
+
 def evaluteTop1(model, dataLoader, class_num=50, per_class=False):
     model.eval()
     correct = 0
