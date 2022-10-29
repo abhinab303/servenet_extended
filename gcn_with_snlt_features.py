@@ -195,6 +195,7 @@ graph_copy = graph.copy()
 #         continue
 
 # features = sp.csr_matrix(feature_matrix)
+embeddings = np.array(embeddings)
 features = sp.csr_matrix(embeddings)
 labels = encode_onehot(api_dataframe['ServiceClassification'])
 # features = normalize(features)
