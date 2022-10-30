@@ -28,6 +28,8 @@ import torch as th
 from dgl.nn import GraphConv
 import random
 
+from model.multi_head import weighted_sum, MutliHead
+
 torch.manual_seed(0)
 random.seed(0)
 np.random.seed(0)
@@ -134,6 +136,7 @@ class GCN(nn.Module):
         # self.gc3 = GraphConvolution(nhid2, nclass)
         self.dropout = dropout
         self.final_liner = nn.Linear(in_features=nhid2, out_features=nclass)
+        self.mutliHead = MutliHead(num_classes=CLASS_NUM)
 
     def forward(self, g, x):
         x = F.relu(self.gc1(g, x))
@@ -141,9 +144,10 @@ class GCN(nn.Module):
         x = F.relu(self.gc2(g, x))
         # output = self.gc2(g, x)
         x = F.dropout(x, self.dropout, training=self.training)
-        output = self.final_liner(x)
+        output = self.MutliHead(x)
         # return F.log_softmax(x, dim=1)
         # return F.log_softmax(output, dim=1)
+
         return output
 
 
@@ -225,7 +229,7 @@ cuda = torch.cuda.is_available()
 fastmode = False
 seed = 42
 epochs = 3000  # 2000
-lr = 0.0005
+lr = 0.001
 # weight_decay = 5e-4
 weight_decay = 0
 hidden = [1024, 1024]  # [2048, 1024]    # [256, 128]
