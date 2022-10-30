@@ -136,7 +136,7 @@ class GCN(nn.Module):
         # self.gc3 = GraphConvolution(nhid2, nclass)
         self.dropout = dropout
         self.final_liner = nn.Linear(in_features=nhid2, out_features=nclass)
-        self.mutliHead = MutliHead(num_classes=CLASS_NUM)
+        self.multiHead = MutliHead(num_classes=CLASS_NUM)
 
     def forward(self, g, x):
         x = F.relu(self.gc1(g, x))
