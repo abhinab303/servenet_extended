@@ -141,9 +141,9 @@ class GCN(nn.Module):
     def forward(self, g, x):
         x = F.relu(self.gc1(g, x))
         x = F.dropout(x, self.dropout, training=self.training)
-        x = F.relu(self.gc2(g, x))
-        # output = self.gc2(g, x)
-        x = F.dropout(x, self.dropout, training=self.training)
+        # x = F.relu(self.gc2(g, x))
+        x = self.gc2(g, x)
+        # x = F.dropout(x, self.dropout, training=self.training)
         output = self.multiHead(x)
         # return F.log_softmax(x, dim=1)
         # return F.log_softmax(output, dim=1)
