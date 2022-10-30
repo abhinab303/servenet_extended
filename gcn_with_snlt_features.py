@@ -144,7 +144,7 @@ class GCN(nn.Module):
         x = F.relu(self.gc2(g, x))
         # output = self.gc2(g, x)
         x = F.dropout(x, self.dropout, training=self.training)
-        output = self.MutliHead(x)
+        output = self.multiHead(x)
         # return F.log_softmax(x, dim=1)
         # return F.log_softmax(output, dim=1)
 
