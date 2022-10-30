@@ -161,7 +161,7 @@ from tqdm import tqdm
 CLASS_NUM = 50
 BATCH_SIZE = 512
 
-sn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/snlt")
+sn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/snlt_or")
 for param in sn_model.parameters():
     param.requires_grad = False
 sn_model.eval()
