@@ -214,7 +214,7 @@ if cuda:
     idx_test = idx_test.cuda()
 
 # gcn_model.load_state_dict(torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4"))
-# gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
+gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
 # for param in gcn_model.parameters():
 #     param.requires_grad = False
 # gcn_model.eval()
@@ -239,11 +239,12 @@ class ServeNet(torch.nn.Module):
 
         self.weight_sum = weighted_sum3()
         self.mutliHead = MutliHead(num_classes=CLASS_NUM)
-        self.gcn = GCN(nfeat=features.shape[1],
-                       nhid1=hidden[0],
-                       nhid2=hidden[1],
-                       nclass=labels.max().item() + 1,
-                       dropout=dropout)
+        # self.gcn = GCN(nfeat=features.shape[1],
+        #                nhid1=hidden[0],
+        #                nhid2=hidden[1],
+        #                nclass=labels.max().item() + 1,
+        #                dropout=dropout)
+        self.gcn = gcn_model
 
     def forward(self, names, descriptions, indices):
         self.lstm.flatten_parameters()
