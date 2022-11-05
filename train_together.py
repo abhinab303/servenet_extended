@@ -240,12 +240,12 @@ class ServeNet(torch.nn.Module):
 
         self.weight_sum = weighted_sum3()
         self.mutliHead = MutliHead(num_classes=CLASS_NUM)
-        # self.gcn = GCN(nfeat=features.shape[1],
-        #                nhid1=hidden[0],
-        #                nhid2=hidden[1],
-        #                nclass=labels.max().item() + 1,
-        #                dropout=dropout)
-        self.gcn = gcn_model
+        self.gcn = GCN(nfeat=features.shape[1],
+                       nhid1=hidden[0],
+                       nhid2=hidden[1],
+                       nclass=labels.max().item() + 1,
+                       dropout=dropout)
+        # self.gcn = gcn_model
 
     def forward(self, names, descriptions, indices):
         self.lstm.flatten_parameters()
