@@ -192,11 +192,11 @@ if cuda:
 # adj, features, labels, idx_train, idx_val, idx_test = load_data()
 
 # Model and optimizer
-gcn_model = GCN(nfeat=features.shape[1],
-                nhid1=hidden[0],
-                nhid2=hidden[1],
-                nclass=labels.max().item() + 1,
-                dropout=dropout)
+# gcn_model = GCN(nfeat=features.shape[1],
+#                 nhid1=hidden[0],
+#                 nhid2=hidden[1],
+#                 nclass=labels.max().item() + 1,
+#                 dropout=dropout)
 
 # criterion = torch.nn.CrossEntropyLoss()
 # optimizer = optim.Adam(gcn_model.parameters(),
@@ -206,7 +206,7 @@ gcn_model = GCN(nfeat=features.shape[1],
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0)
 
 if cuda:
-    gcn_model.cuda()
+    # gcn_model.cuda()
     features = features.cuda()
     labels = labels.cuda()
     idx_train = idx_train.cuda()
@@ -214,12 +214,12 @@ if cuda:
     idx_test = idx_test.cuda()
 
 # gcn_model.load_state_dict(torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4"))
-gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
-for param in gcn_model.parameters():
-    param.requires_grad = False
-gcn_model.eval()
-gcn_op = gcn_model(g, features)
-print(gcn_op.shape)
+# gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
+# for param in gcn_model.parameters():
+#     param.requires_grad = False
+# gcn_model.eval()
+# gcn_op = gcn_model(g, features)
+# print(gcn_op.shape)
 
 
 class ServeNet(torch.nn.Module):
@@ -239,11 +239,11 @@ class ServeNet(torch.nn.Module):
 
         self.weight_sum = weighted_sum3()
         self.mutliHead = MutliHead(num_classes=CLASS_NUM)
-        # self.gcn = GCN(nfeat=features.shape[1],
-        #                nhid1=hidden[0],
-        #                nhid2=hidden[1],
-        #                nclass=labels.max().item() + 1,
-        #                dropout=dropout)
+        self.gcn = GCN(nfeat=features.shape[1],
+                       nhid1=hidden[0],
+                       nhid2=hidden[1],
+                       nclass=labels.max().item() + 1,
+                       dropout=dropout)
 
     def forward(self, names, descriptions, indices):
         self.lstm.flatten_parameters()
@@ -267,6 +267,9 @@ class ServeNet(torch.nn.Module):
 
         # from_gcn = torch.take(gcn_op, indices)
         # from_gcn = gcn_op[torch.add(indices, 7081)]
+        # from_gcn = gcn_op[indices]
+
+        gcn_op = self.gcn(g, features)
         from_gcn = gcn_op[indices]
 
         # sum
@@ -275,7 +278,7 @@ class ServeNet(torch.nn.Module):
 
         return output
 
-epochs = 40
+epochs = 100
 SEED = 123
 LEARNING_RATE = 0.001
 # LEARNING_RATE = 0.01
@@ -341,6 +344,19 @@ for epoch in range(epochs):
         loss = criterion(outputs, label)
         loss.backward()
         optimizer.step()
+
+    w11 = model.module.weight_sum.w1
+    w22 = model.module.weight_sum.w2
+    w33 = model.module.weight_sum.w3
+    w1 = w11 / (w11 + w22 + w33)
+    w2 = w22 / (w11 + w22 + w33)
+    w3 = w33 / (w11 + w22 + w33)
+    print("w11: ", w11)
+    print("w22: ", w22)
+    print("w33: ", w33)
+    print("w1: ", w1)
+    print("w2: ", w2)
+    print("w3: ", w3)
 
     print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
     print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
