@@ -20,6 +20,7 @@ from dgl.nn import GraphConv
 
 from transformers import BertModel
 from model.multi_head import weighted_sum3, MutliHead
+import pdb
 
 from utils import load_data_train_names, load_data_test_names, evaluteTop5_names, evaluteTop1_names
 
@@ -352,12 +353,15 @@ for epoch in range(epochs):
     w1 = w11 / (w11 + w22 + w33)
     w2 = w22 / (w11 + w22 + w33)
     w3 = w33 / (w11 + w22 + w33)
+
     print("w11: ", w11)
     print("w22: ", w22)
     print("w33: ", w33)
     print("w1: ", w1)
     print("w2: ", w2)
     print("w3: ", w3)
+
+    pdb.set_trace()
 
     print("=======>top1 acc on the test:{}".format(str(evaluteTop1_names(model, test_dataloader, CLASS_NUM))))
     print("=======>top5 acc on the test:{}".format(str(evaluteTop5_names(model, test_dataloader))))
