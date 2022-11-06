@@ -215,7 +215,7 @@ if cuda:
     idx_test = idx_test.cuda()
 
 # gcn_model.load_state_dict(torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4"))
-gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
+# gcn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model4")
 # for param in gcn_model.parameters():
 #     param.requires_grad = False
 # gcn_model.eval()
@@ -304,6 +304,11 @@ test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 model = ServeNet(768, CLASS_NUM)
 # model.bert_description.requires_grad_(False)
 # model.bert_name.requires_grad_(False)
+
+model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.3]))
+model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.3]))
+model.weight_sum.w3 = torch.nn.Parameter(torch.tensor([0.3]))
+
 model = torch.nn.DataParallel(model)
 model = model.cuda()
 model.train()
