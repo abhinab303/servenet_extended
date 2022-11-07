@@ -305,9 +305,9 @@ model = ServeNet(768, CLASS_NUM)
 # model.bert_description.requires_grad_(False)
 # model.bert_name.requires_grad_(False)
 
-model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.3]))
-model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.3]))
-model.weight_sum.w3 = torch.nn.Parameter(torch.tensor([0.3]))
+model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([1]))
+model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([2]))
+model.weight_sum.w3 = torch.nn.Parameter(torch.tensor([0.0001]))
 
 model = torch.nn.DataParallel(model)
 model = model.cuda()
