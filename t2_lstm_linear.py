@@ -228,6 +228,10 @@ optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 # optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
 scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
+epoch_list = []
+acc1_list = []
+acc5_list = []
+
 for epoch in range(epochs):
     print("Epoch:{},lr:{}".format(str(epoch + 1), str(optimizer.state_dict()['param_groups'][0]['lr'])))
     # scheduler.step()
@@ -255,6 +259,23 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
 
-    pdb.set_trace()
-    print("=======>top1 acc on the test:{}".format(str(eval_top1(model, test_dataloader, category_num))))
-    print("=======>top5 acc on the test:{}".format(str(eval_top5(model, test_dataloader))))
+    # pdb.set_trace()
+    top_1_acc = eval_top1(model, test_dataloader, category_num)
+    top_5_acc = eval_top5(model, test_dataloader)
+    epoch_list.append(epoch+1)
+    acc1_list.append(top_1_acc)
+    acc5_list.append(top_5_acc)
+
+    print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
+    print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
+
+    acc_list = pd.DataFrame(
+        {
+            'epoch': epoch_list,
+            'Top1': acc1_list,
+            'Top5': acc5_list
+         }
+    )
+
+    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t2_lstm_linear.csv')
+
