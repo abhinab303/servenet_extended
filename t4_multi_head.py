@@ -256,7 +256,6 @@ class BertMultiHead(torch.nn.Module):
         self.multiHead = MultiHead(num_classes=category_num)
 
     def forward(self, names, descriptions):
-        self.lstm.flatten_parameters()
         description_bert_output = self.bert_description(**descriptions)
 
         description_bert_feature = description_bert_output[1]
