@@ -184,6 +184,49 @@ def edl_log_loss(output, target, epoch_num, num_classes, annealing_step, device=
     return loss
 
 
+def loglikelihood_loss(y, alpha, device=None):
+    if not device:
+        device = get_device()
+    y = y.to(device)
+    alpha = alpha.to(device)
+    S = torch.sum(alpha, dim=1, keepdim=True)
+    loglikelihood_err = torch.sum((y - (alpha / S)) ** 2, dim=1, keepdim=True)
+    loglikelihood_var = torch.sum(
+        alpha * (S - alpha) / (S * S * (S + 1)), dim=1, keepdim=True
+    )
+    loglikelihood = loglikelihood_err + loglikelihood_var
+    return loglikelihood
+
+
+def mse_loss(y, alpha, epoch_num, num_classes, annealing_step, device=None):
+    if not device:
+        device = get_device()
+    y = y.to(device)
+    alpha = alpha.to(device)
+    loglikelihood = loglikelihood_loss(y, alpha, device=device)
+
+    annealing_coef = torch.min(
+        torch.tensor(1.0, dtype=torch.float32),
+        torch.tensor(epoch_num / annealing_step, dtype=torch.float32),
+    )
+
+    kl_alpha = (alpha - 1) * (1 - y) + 1
+    kl_div = annealing_coef * kl_divergence(kl_alpha, num_classes, device=device)
+    return loglikelihood + kl_div
+    # return loglikelihood
+
+
+def edl_mse_loss(output, target, epoch_num, num_classes, annealing_step, device=None):
+    if not device:
+        device = get_device()
+    evidence = relu_evidence(output)
+    alpha = evidence + 1
+    loss = torch.mean(
+        mse_loss(target, alpha, epoch_num, num_classes, annealing_step, device=device)
+    )
+    return loss
+
+
 class GCN(nn.Module):
     def __init__(self, nfeat, nhid1, nhid2, nclass, dropout):
         super(GCN, self).__init__()
@@ -196,9 +239,9 @@ class GCN(nn.Module):
 
     def forward(self, g, x):
         x = F.relu(self.gc1(g, x))
-        x = F.dropout(x, self.dropout, training=self.training)
+        # x = F.dropout(x, self.dropout, training=self.training)
         x = F.relu(self.gc2(g, x))
-        x = F.dropout(x, self.dropout, training=self.training)
+        # x = F.dropout(x, self.dropout, training=self.training)
         output = self.final_liner(x)
         # return F.log_softmax(x, dim=1)
         # return F.log_softmax(output, dim=1)
@@ -244,7 +287,7 @@ cuda = torch.cuda.is_available()
 fastmode = False
 seed = 42
 epochs = 3000  # 2000
-lr = 0.01
+lr = 0.00001
 # weight_decay = 5e-4
 weight_decay = 0
 hidden = [1024, 1024]  # [2048, 1024]    # [256, 128]
@@ -270,7 +313,7 @@ model = GCN(nfeat=features.shape[1],
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(),
                        lr=lr,
-                       #  weight_decay=weight_decay
+                       # weight_decay=0.005
                        )
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0)
 
@@ -294,6 +337,7 @@ train_acc_5 = []
 last_loss = 100
 trigger_times = 0
 
+a_param = 1
 
 def train(epoch):
     global last_loss, trigger_times
@@ -303,7 +347,7 @@ def train(epoch):
     output = model(g, features)
     # loss_train = F.nll_loss(output[idx_train], labels[idx_train])
     # loss_train = criterion(output[idx_train], labels[idx_train])
-    loss_train = edl_log_loss(output[idx_train], labels[idx_train], epoch, 50, 10)
+    loss_train = edl_mse_loss(output[idx_train], F.one_hot(labels[idx_train]), epoch+1, 50, a_param)
     acc_train = accuracy(output[idx_train], labels[idx_train])
     top5_train = evaluateTop5(output[idx_train], labels[idx_train])
     loss_train.backward()
@@ -318,7 +362,7 @@ def train(epoch):
 
     # loss_val = F.nll_loss(output[idx_val], labels[idx_val])
     # loss_val = criterion(output[idx_val], labels[idx_val])
-    loss_val = edl_log_loss(output[idx_val], labels[idx_val], epoch, 50, 10)
+    loss_val = edl_mse_loss(output[idx_val], F.one_hot(labels[idx_val]), epoch+1, 50, a_param)
     acc_val = accuracy(output[idx_val], labels[idx_val])
     top5_val = evaluateTop5(output[idx_val], labels[idx_val])
     print('Epoch: {:04d}'.format(epoch + 1),
@@ -348,7 +392,7 @@ def test():
     model.eval()
     output = model(g, features)
     # loss_test = criterion(output[idx_test], labels[idx_test])
-    loss_test = edl_log_loss(output[idx_test], labels[idx_test], epoch, 50, 10)
+    loss_test = edl_mse_loss(output[idx_test], F.one_hot(labels[idx_test]), epoch+1, 50, a_param)
     acc_test = accuracy(output[idx_test], labels[idx_test])
     print("Test set results:",
           "loss= {:.4f}".format(loss_test.item()),
@@ -373,5 +417,5 @@ test()
 
 # save the model:
 # torch.save(model.state_dict(), "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_model_not_random")
-torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model5")
+torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_full_model_evidential")
 pass
