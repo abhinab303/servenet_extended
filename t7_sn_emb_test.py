@@ -307,8 +307,8 @@ class EmbTestMh(torch.nn.Module):
         super(EmbTestMh, self).__init__()
         self.multi_head = MultiHead(num_classes=CLASS_NUM)
 
-    def forward(self, names, descriptions, indices):
-        all_features = sn_model(names, descriptions, indices)
+    def forward(self, names, descriptions):
+        all_features = sn_model(names, descriptions)
         output = self.multi_head(all_features)
         return output
 
