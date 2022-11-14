@@ -369,7 +369,7 @@ if __name__ == "__main__":
 
         if top_1_acc > best_accuracy:
             best_accuracy = top_1_acc
-            torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best")
+            torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best2")
 
         print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
         print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
