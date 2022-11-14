@@ -16,7 +16,7 @@ CLASS_NUM = category_num = 50
 max_len = 110
 BATCH_SIZE = 56
 LEARNING_RATE = 0.001
-epochs = 100
+epochs = 40
 
 
 def encode_onehot(labels):
@@ -388,7 +388,7 @@ for epoch in range(epochs):
 
     if top_1_acc > best_accuracy:
         best_accuracy = top_1_acc
-        torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best")
+        torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_emb_test2")
 
     print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
     print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
