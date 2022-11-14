@@ -293,7 +293,7 @@ class ServeNet(torch.nn.Module):
 
         all_features = self.weight_sum(name_features, hidden)
         output = self.multi_head(all_features)
-        return output
+        return all_features
 
 
 sn_model = torch.load("/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best")
@@ -302,9 +302,9 @@ for param in sn_model.parameters():
     param.requires_grad = False
 sn_model.eval()
 
-class EmbTest(torch.nn.Module):
+class EmbTestMh(torch.nn.Module):
     def __init__(self, hiddenSize, CLASS_NUM):
-        super(EmbTest, self).__init__()
+        super(EmbTestMh, self).__init__()
         self.multi_head = MultiHead(num_classes=CLASS_NUM)
 
     def forward(self, names, descriptions, indices):
@@ -319,10 +319,10 @@ test_data = load_data_test()
 train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
 test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
-print("=======>top1 acc on the test:{}".format(str(eval_top1(sn_model, test_dataloader, CLASS_NUM, False))))
-pdb.set_trace()
+# print("=======>top1 acc on the test:{}".format(str(eval_top1(sn_model, test_dataloader, CLASS_NUM, False))))
+# pdb.set_trace()
 
-model = EmbTest(768, CLASS_NUM)
+model = EmbTestMh(768, CLASS_NUM)
 
 # model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.5]))
 # model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.5]))
