@@ -10,6 +10,9 @@ from torch.utils.data import DataLoader
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 import pdb
+from dgl.nn import GraphConv
+import torch.nn.functional as F
+import pickle
 
 ip_file_dir = "/home/aa7514/PycharmProjects/servenet_extended/data/"
 CLASS_NUM = category_num = 50
@@ -54,7 +57,7 @@ def load_data_train():
                             padding=True,
                             truncation=True)
 
-    total_targets = torch.tensor(integer_encoded)
+    total_targets = integer_encoded
 
     desc_list = []
     for key, value in desc_tokens.items():
@@ -75,7 +78,8 @@ def load_data_test():
 
     train_df = pd.read_csv(train_file)
     test_df = pd.read_csv(test_file)
-    df = pd.concat([train_df, test_df], axis=0)
+    # df = pd.concat([train_df, test_df], axis=0)
+    df = test_df
     df.reset_index(inplace=True, drop=True)
     values = np.array(df.ServiceClassification)
     label_encoder = LabelEncoder()
@@ -109,6 +113,51 @@ def load_data_test():
         name_list.append(torch.tensor(value))
 
     test_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values + len(train_df)))
+
+    return test_data
+
+
+def load_all_data():
+    test_file = f"{ip_file_dir}{category_num}/test.csv"
+    train_file = f"{ip_file_dir}{category_num}/train.csv"
+
+    train_df = pd.read_csv(train_file)
+    test_df = pd.read_csv(test_file)
+    df = pd.concat([train_df, test_df], axis=0)
+    # df = test_df
+    df.reset_index(inplace=True, drop=True)
+    values = np.array(df.ServiceClassification)
+    label_encoder = LabelEncoder()
+    # integer_encoded = label_encoder.fit_transform(values)
+    # integer_encoded = encode_onehot(df.ServiceClassification).transpose(1, 0)
+    integer_encoded = torch.LongTensor(np.where(encode_onehot(df.ServiceClassification))[1])
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+    # descriptions
+    descriptions = df["ServiceDescription"].tolist()
+    desc_tokens = tokenizer(descriptions, return_tensors="pt",
+                            max_length=max_len,
+                            padding=True,
+                            truncation=True)
+
+    # names
+    names = df["ServiceName"].tolist()
+    name_tokens = tokenizer(names, return_tensors="pt",
+                            max_length=max_len,
+                            padding=True,
+                            truncation=True)
+
+    total_targets = integer_encoded
+
+    desc_list = []
+    for key, value in desc_tokens.items():
+        desc_list.append(torch.tensor(value))
+
+    name_list = []
+    for key, value in name_tokens.items():
+        name_list.append(torch.tensor(value))
+
+    test_data = TensorDataset(*desc_list, total_targets, *name_list, torch.tensor(df.index.values))
 
     return test_data
 
@@ -280,7 +329,6 @@ class ServeNet(torch.nn.Module):
         self.weight_sum = WeightedSum()
         self.multi_head = MultiHead(num_classes=CLASS_NUM)
 
-
     def forward(self, names, descriptions):
         self.lstm.flatten_parameters()
         name_bert_output = self.bert_name(**names)
@@ -305,17 +353,81 @@ for param in sn_model.parameters():
     param.requires_grad = False
 sn_model.eval()
 
+# loop through all the datasets, generate the embedding and save it in a file.
+feature_list = []
+
+all_data = load_all_data()
+all_data_loader = DataLoader(all_data, batch_size=1024)
+
+for data in tqdm(all_data_loader):
+    descriptions = {'input_ids': data[0].cuda(),
+                    'token_type_ids': data[1].cuda(),
+                    'attention_mask': data[2].cuda()
+                    }
+
+    names = {'input_ids': data[4].cuda(),
+             'token_type_ids': data[5].cuda(),
+             'attention_mask': data[6].cuda()
+             }
+    label = data[3].cuda()
+
+    outputs = sn_model(names, descriptions)
+    feature_list.extend(outputs.cpu().numpy())
+    # pdb.set_trace()
+
+pdb.set_trace()
+
 
 class GCN(torch.nn.Module):
-    def __init__(self, CLASS_NUM):
+    def __init__(self, nfeat, nhid1, nhid2, nclass, dropout):
         super(GCN, self).__init__()
-        self.linear = nn.Linear(in_features=1024, out_features=CLASS_NUM)
 
-    def forward(self, names, descriptions):
-        all_features = sn_model(names, descriptions)
-        output = self.linear(all_features)
-        return output
+        self.gc1 = GraphConv(nfeat, nhid1, norm='both', weight=True, bias=True)
+        self.gc2 = GraphConv(nhid1, nhid2, norm='both', weight=True, bias=True)
+        # self.gc2 = GraphConv(nhid1, nclass, norm='both', weight=True, bias=True)
+        self.dropout = dropout
+        self.final_liner = nn.Linear(in_features=nhid2, out_features=nclass)
+        self.multiHead = MultiHead(num_classes=CLASS_NUM)
 
+    def forward(self, g, x):
+        x = F.relu(self.gc1(g, x))
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = F.relu(self.gc2(g, x))
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = self.gc2(g, x)
+        x = self.final_liner(x)
+        # return F.log_softmax(x, dim=1)
+        # return F.log_softmax(output, dim=1)
+        return x
+
+test_path = "/home/aa7514/PycharmProjects/servenet_extended/data/50/test.csv"
+train_path = "/home/aa7514/PycharmProjects/servenet_extended/data/50/train.csv"
+graph_path = "/home/aa7514/PycharmProjects/servenet_extended/files/graph.pickle"
+feature_path = "/home/aa7514/PycharmProjects/servenet_extended/files/feature_matrix.pickle"
+
+with open(graph_path, "rb") as f:
+    graph = pickle.load(f)
+
+with open(feature_path, "rb") as f:
+    feature_matrix = pickle.load(f)
+
+
+
+train_df = pd.read_csv(train_path)
+test_df = pd.read_csv(test_path)
+train_df["ServiceDescription"] = train_df["ServiceDescription"].str.replace(r'[^A-Za-z .]+', '', regex=True)
+test_df["ServiceDescription"] = test_df["ServiceDescription"].str.replace(r'[^A-Za-z .]+', '', regex=True)
+
+api_dataframe = pd.concat([train_df, test_df], axis=0)
+api_dataframe.reset_index(inplace=True, drop=True)
+
+Train_C = api_dataframe.iloc[0:len(train_df)]
+Test_C = api_dataframe.iloc[len(train_df):]
+
+training_data = Train_C
+testing_data = Test_C
+TrainIndex = training_data.index.values.tolist()
+TestIndex = testing_data.index.values.tolist()
 
 train_data = load_data_train()
 test_data = load_data_test()
@@ -323,94 +435,162 @@ test_data = load_data_test()
 train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE)
 test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
-print("=======>top1 acc on the test:{}".format(str(eval_top1(sn_model, test_dataloader, CLASS_NUM, False))))
-pdb.set_trace()
+graph_copy = graph.copy()
 
-# model = GCN(CLASS_NUM)
+f2 = feature_matrix[len(feature_list):]
+f1 = np.array(feature_list)
+dd = feature_list[0].shape[0] - feature_matrix.shape[1]
+f2p = np.pad(f2, ((0, 0), (0, dd)), 'constant')
+new_emb = np.concatenate((f1, f2p), axis=0)
 
-# model.weight_sum.w1 = torch.nn.Parameter(torch.tensor([0.5]))
-# model.weight_sum.w2 = torch.nn.Parameter(torch.tensor([0.5]))
+# features = sp.csr_matrix(feature_matrix)
+features = sp.csr_matrix(new_emb)
 
-# model.bert_description.requires_grad_(False)
-model = torch.nn.DataParallel(model)
-model = model.cuda()
-model.train()
+labels = encode_onehot(api_dataframe['ServiceClassification'])
+# features = normalize(features)
+idx_train = TrainIndex
+idx_val = TestIndex
+idx_test = TestIndex
 
-# pdb.set_trace()
+features = torch.FloatTensor(np.array(features.todense()))
+labels = torch.LongTensor(np.where(labels)[1])
 
-epoch_list = []
-acc1_list = []
-acc5_list = []
-best_accuracy = 0
+idx_train = torch.LongTensor(idx_train)
+idx_val = torch.LongTensor(idx_val)
+idx_test = torch.LongTensor(idx_test)
 
-pytorch_total_params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-pytorch_total_params_all = sum(p.numel() for p in model.parameters())
-print("Trainable: ", pytorch_total_params_trainable)
-print("All: ", pytorch_total_params_all)
+g = dgl.from_networkx(graph_copy).to('cuda')
+g = dgl.add_self_loop(g)
+
+cuda = torch.cuda.is_available()
+fastmode = False
+seed = 42
+epochs = 3000  # 2000
+lr = 0.001
+# weight_decay = 5e-4
+weight_decay = 0
+hidden = [1024, 1024]  # [2048, 1024]    # [256, 128]
+dropout = 0.5  # 0.95   # 0.4
+T_0 = 10  # Number of iterations for the first restart.
+patience = 50
+
+np.random.seed(seed)
+torch.manual_seed(seed)
+if cuda:
+    torch.cuda.manual_seed(seed)
+
+# Load data
+# adj, features, labels, idx_train, idx_val, idx_test = load_data()
+
+# Model and optimizer
+model = GCN(nfeat=features.shape[1],
+            nhid1=hidden[0],
+            nhid2=hidden[1],
+            nclass=labels.max().item() + 1,
+            dropout=dropout)
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
-# optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
-scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+optimizer = optim.Adam(model.parameters(),
+                       lr=lr,
+                       #  weight_decay=weight_decay
+                       )
+# scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0)
 
-# w11 = model.module.weight_sum.w1
-# w22 = model.module.weight_sum.w2
-# print("w11: ", w11)
-# print("w22: ", w22)
+
+if cuda:
+    model.cuda()
+    features = features.cuda()
+    labels = labels.cuda()
+    idx_train = idx_train.cuda()
+    idx_val = idx_val.cuda()
+    idx_test = idx_test.cuda()
+
+val_losses = []
+train_losses = []
+
+val_acc = []
+train_acc = []
+val_acc_5 = []
+train_acc_5 = []
+
+last_loss = 100
+trigger_times = 0
+
+
+def train(epoch):
+    global last_loss, trigger_times
+    t = time.time()
+    model.train()
+    optimizer.zero_grad()
+    output = model(g, features)
+    # loss_train = F.nll_loss(output[idx_train], labels[idx_train])
+    loss_train = criterion(output[idx_train], labels[idx_train])
+    acc_train = accuracy(output[idx_train], labels[idx_train])
+    top5_train = evaluateTop5(output[idx_train], labels[idx_train])
+    loss_train.backward()
+    optimizer.step()
+    # scheduler.step()
+
+    if not fastmode:
+        # Evaluate validation set performance separately,
+        # deactivates dropout during validation run.
+        model.eval()
+        output = model(g, features)
+
+    # loss_val = F.nll_loss(output[idx_val], labels[idx_val])
+    loss_val = criterion(output[idx_val], labels[idx_val])
+    acc_val = accuracy(output[idx_val], labels[idx_val])
+    top5_val = evaluateTop5(output[idx_val], labels[idx_val])
+    print('Epoch: {:04d}'.format(epoch + 1),
+          'loss_train: {:.4f}'.format(loss_train.item()),
+          'acc_train: {:.4f}'.format(acc_train.item()),
+          'loss_val: {:.4f}'.format(loss_val.item()),
+          'acc_val: {:.4f}'.format(acc_val.item()),
+          'acc_top5: {:.4f}'.format(top5_val.item()),
+          'time: {:.4f}s'.format(time.time() - t),
+          # f'LR: {scheduler.get_last_lr()}'
+          )
+
+    train_losses.append(loss_train.item())
+    val_losses.append(loss_val.item())
+    train_acc.append(acc_train.item())
+    val_acc.append(acc_val.item())
+    train_acc_5.append(top5_train.item())
+    val_acc_5.append(top5_val.item())
+
+    current_loss = loss_val.item()
+    if current_loss > last_loss:
+        trigger_times += 1
+    last_loss = current_loss
+
+
+def test():
+    model.eval()
+    output = model(g, features)
+    loss_test = criterion(output[idx_test], labels[idx_test])
+    acc_test = accuracy(output[idx_test], labels[idx_test])
+    print("Test set results:",
+          "loss= {:.4f}".format(loss_test.item()),
+          "accuracy= {:.4f}".format(acc_test.item()))
+
+
+# Train model
+t_total = time.time()
 
 for epoch in range(epochs):
-    print("Epoch:{},lr:{}".format(str(epoch + 1), str(optimizer.state_dict()['param_groups'][0]['lr'])))
-    # scheduler.step()
-    model.train()
-    for data in tqdm(train_dataloader):
-        # zero the parameter gradients
-        optimizer.zero_grad()
+    train(epoch)
+    if trigger_times >= patience:
+        print('Early stopping!\nStart to test process.')
+        break
+    else:
+        trigger_times = 0
+print("Optimization Finished!")
+print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
-        descriptions = {'input_ids': data[0].cuda(),
-                        'token_type_ids': data[1].cuda(),
-                        'attention_mask': data[2].cuda()
-                        }
+# Testing
+test()
 
-        names = {'input_ids': data[4].cuda(),
-                 'token_type_ids': data[5].cuda(),
-                 'attention_mask': data[6].cuda()
-                 }
-        label = data[3].cuda()
-
-        outputs = model(names, descriptions)
-
-        loss = criterion(outputs, label)
-        loss.backward()
-        optimizer.step()
-
-    # pdb.set_trace()
-    top_1_acc = eval_top1(model, test_dataloader, category_num)
-    top_5_acc = eval_top5(model, test_dataloader)
-    epoch_list.append(epoch + 1)
-    acc1_list.append(top_1_acc)
-    acc5_list.append(top_5_acc)
-
-    if top_1_acc > best_accuracy:
-        best_accuracy = top_1_acc
-        torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/t9_sn_gcn")
-
-    print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
-    print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
-    # w11 = model.module.weight_sum.w1
-    # w22 = model.module.weight_sum.w2
-    # print("w11: ", w11)
-    # print("w22: ", w22)
-
-    acc_list = pd.DataFrame(
-        {
-            'epoch': epoch_list,
-            'Top1': acc1_list,
-            'Top5': acc5_list
-        }
-    )
-
-    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t9_sn_gcn.csv')
-
-# print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM, True))))
-
-
+# save the model:
+# torch.save(model.state_dict(), "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_model_not_random")
+torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/gcn_sn_ip")
+pass
