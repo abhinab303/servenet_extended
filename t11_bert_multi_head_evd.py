@@ -299,8 +299,8 @@ def edl_loss(func, y, alpha, epoch_num, num_classes, annealing_step, device=None
     )
 
     kl_alpha = (alpha - 1) * (1 - y) + 1
-    # kl_div = annealing_coef * kl_divergence(kl_alpha, num_classes, device=device)
-    kl_div = 1 * kl_divergence(kl_alpha, num_classes, device=device)
+    kl_div = annealing_coef * kl_divergence(kl_alpha, num_classes, device=device)
+    # kl_div = 1 * kl_divergence(kl_alpha, num_classes, device=device)
     # return A + kl_div
     return A
 
