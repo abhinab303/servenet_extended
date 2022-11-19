@@ -279,7 +279,8 @@ def mse_loss(y, alpha, epoch_num, num_classes, annealing_step, device=None):
     )
 
     kl_alpha = (alpha - 1) * (1 - y) + 1
-    kl_div = annealing_coef * kl_divergence(kl_alpha, num_classes, device=device)
+    # kl_div = annealing_coef * kl_divergence(kl_alpha, num_classes, device=device)
+    kl_div = 0.001 * kl_divergence(kl_alpha, num_classes, device=device)
     return loglikelihood + kl_div
     # return loglikelihood
 
@@ -335,8 +336,8 @@ acc1_list = []
 acc5_list = []
 
 a_param = 10
-loss_func = edl_log_loss
-# loss_func = edl_mse_loss
+# loss_func = edl_log_loss
+loss_func = edl_mse_loss
 
 for epoch in range(epochs):
     print("Epoch:{},lr:{}".format(str(epoch + 1), str(optimizer.state_dict()['param_groups'][0]['lr'])))
