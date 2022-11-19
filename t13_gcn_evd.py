@@ -16,7 +16,7 @@ category_num = 50
 max_len = 110
 BATCH_SIZE = 56
 LEARNING_RATE = 0.001
-epochs = 100
+epochs = 40
 
 
 def encode_onehot(labels):
@@ -366,12 +366,6 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
 
-    top_1_acc = eval_top1(model, test_dataloader, category_num)
-    top_5_acc = eval_top5(model, test_dataloader)
-    epoch_list.append(epoch + 1)
-    acc1_list.append(top_1_acc)
-    acc5_list.append(top_5_acc)
-
     acc_list = pd.DataFrame(
         {
             'epoch': epoch_list,
@@ -380,8 +374,8 @@ for epoch in range(epochs):
         }
     )
 
-    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t12_bert_fc_evd_100e.csv')
+    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t12_bert_fc_evd.csv')
 
     # pdb.set_trace()
-    print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
-    print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
+    print("=======>top1 acc on the test:{}".format(str(eval_top1(model, test_dataloader, category_num))))
+    print("=======>top5 acc on the test:{}".format(str(eval_top5(model, test_dataloader))))
