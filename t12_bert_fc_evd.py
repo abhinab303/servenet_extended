@@ -16,7 +16,7 @@ category_num = 50
 max_len = 110
 BATCH_SIZE = 56
 LEARNING_RATE = 0.001
-epochs = 100
+epochs = 200
 
 
 def encode_onehot(labels):
@@ -381,7 +381,7 @@ for epoch in range(epochs):
         }
     )
 
-    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t12_bert_fc_evd_100e.csv')
+    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t12_bert_fc_evd_200e.csv')
 
     # pdb.set_trace()
     print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
