@@ -15,7 +15,7 @@ ip_file_dir = "/home/aa7514/PycharmProjects/servenet_extended/data/"
 category_num = 50
 max_len = 110
 BATCH_SIZE = 56
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.004
 epochs = 200
 
 
@@ -381,7 +381,7 @@ for epoch in range(epochs):
         }
     )
 
-    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t12_bert_fc_evd_200e.csv')
+    acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t12_bert_fc_evd_lr0_004.csv')
 
     # pdb.set_trace()
     print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
