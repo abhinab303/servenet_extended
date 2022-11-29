@@ -1,18 +1,17 @@
-import torch
-import torch.nn as nn
-from transformers import BertModel
-from sklearn.preprocessing import LabelEncoder
-from torch.utils.data import TensorDataset
 import numpy as np
 import pandas as pd
-from transformers import BertTokenizer
-from torch.utils.data import DataLoader
+import torch
+import torch.nn as nn
+from sklearn.preprocessing import LabelEncoder
 from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader
+from torch.utils.data import TensorDataset
 from tqdm import tqdm
-import pdb
+from transformers import BertModel
+from transformers import BertTokenizer
 
 ip_file_dir = "/home/aa7514/PycharmProjects/servenet_extended/data/"
-CLASS_NUM = category_num = 50
+CLASS_NUM = category_num = 100
 max_len = 110
 BATCH_SIZE = 56
 LEARNING_RATE = 0.001
@@ -369,7 +368,7 @@ if __name__ == "__main__":
 
         if top_1_acc > best_accuracy:
             best_accuracy = top_1_acc
-            torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best2")
+            torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best2_100")
 
         print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
         print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
@@ -386,6 +385,6 @@ if __name__ == "__main__":
             }
         )
 
-        acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t6_SN.csv')
+        acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t6_SN_100.csv')
 
     # print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM, True))))
