@@ -11,7 +11,7 @@ from transformers import BertModel
 from transformers import BertTokenizer
 
 ip_file_dir = "/home/aa7514/PycharmProjects/servenet_extended/data/"
-CLASS_NUM = category_num = 100
+CLASS_NUM = category_num = 200
 max_len = 110
 BATCH_SIZE = 56
 LEARNING_RATE = 0.001
@@ -368,7 +368,7 @@ if __name__ == "__main__":
 
         if top_1_acc > best_accuracy:
             best_accuracy = top_1_acc
-            torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best2_100")
+            torch.save(model, "/home/aa7514/PycharmProjects/servenet_extended/files/snlt_best2_200")
 
         print("=======>top1 acc on the test:{}".format(str(top_1_acc)))
         print("=======>top5 acc on the test:{}".format(str(top_5_acc)))
@@ -385,6 +385,6 @@ if __name__ == "__main__":
             }
         )
 
-        acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t6_SN_100.csv')
+        acc_list.to_csv('/home/aa7514/PycharmProjects/servenet_extended/files/t6_SN_200.csv')
 
     # print("=======>top1 acc on the test:{}".format(str(eval_top1_sn(model, test_dataloader, CLASS_NUM, True))))
